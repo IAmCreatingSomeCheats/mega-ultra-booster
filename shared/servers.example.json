@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "categories": ["Main", "Casual/Beginner", "Practice"],
+  "servers": [
+    {
+      "name": "Hypixel",
+      "address": "mc.hypixel.net",
+      "category": "Main",
+      "notes": "Big network, high population"
+    },
+    {
+      "name": "Quiet SMP",
+      "address": "play.example.net",
+      "category": "Casual/Beginner",
+      "notes": "Relaxed survival, usually low player count"
+    },
+    {
+      "name": "Beginner Skyblock",
+      "address": "skyblock.example.org",
+      "category": "Casual/Beginner",
+      "notes": "Newer / chill community"
+    },
+    {
+      "name": "Local Test Server",
+      "address": "127.0.0.1:25565",
+      "category": "Practice",
+      "notes": "My own server on this PC"
+    }
+  ]
+}

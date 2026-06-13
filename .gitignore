@@ -1,0 +1,33 @@
+# ──────────────── Build output ────────────────
+# Java / Gradle (mod)
+.gradle/
+build/
+out/
+run/
+*.class
+
+# .NET (app)
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+
+# ──────────────── IDE / editor ────────────────
+.idea/
+*.iml
+.vs/
+.vscode/
+*.swp
+
+# ──────────────── OS cruft ────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ──────────────── Secrets ────────────────
+# never commit a Modrinth/GitHub token
+*.token
+.env
+
+# NOTE: the Gradle wrapper jar (mod/gradle/wrapper/gradle-wrapper.jar) is
+# intentionally committed — there is deliberately no blanket "*.jar" rule.

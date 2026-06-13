@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "turboboost",
+  "version": "${version}",
+  "name": "TurboBoost",
+  "description": "MEGA Ultra Booster's in-game half: performance profiles, a live FPS/RAM overlay, dynamic FPS when unfocused, a smart server switcher, and a live link to the desktop app. Designed to run alongside Sodium + Lithium.",
+  "authors": [
+    "MEGA Ultra"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/turboboost"
+  },
+  "license": "MIT",
+  "icon": "assets/turboboost/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.megaultra.turboboost.TurboBoostClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "sodium": "*",
+    "lithium": "*"
+  }
+}
