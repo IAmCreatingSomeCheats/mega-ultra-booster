@@ -82,11 +82,26 @@ foreach ($p in $plan) {
     $json = $data | ConvertTo-Json -Depth 6 -Compress
 
     Write-Host "Uploading $versionNumber ..." -ForegroundColor Cyan
-    $resp = Invoke-RestMethod -Uri "$api/version" -Method Post -Headers $headers -Form @{
-        data = $json
-        file = $p.Jar
-    }
-    Write-Host "  ok -> https://modrinth.com/mod/$Slug/version/$($resp.version_number)" -ForegroundColor Green
+
+    # Upload via curl.exe: Modrinth requires the `data` (JSON) part FIRST and as
+    # application/json. PowerShell's -Form can't guarantee field order, so curl is
+    # the reliable path. JSON goes through a temp file to avoid shell quoting issues.
+    $tmp = New-TemporaryFile
+    Set-Content -LiteralPath $tmp.FullName -Value $json -Encoding utf8NoBOM -NoNewline
+    $curlArgs = @(
+        '-s', '-X', 'POST', "$api/version",
+        '-H', "Authorization: $Token",
+        '-H', "User-Agent: $ua",
+        '-F', "data=@$($tmp.FullName);type=application/json",
+        '-F', "file=@$($p.Jar.FullName);type=application/java-archive"
+    )
+    $out = & curl.exe @curlArgs
+    Remove-Item -LiteralPath $tmp.FullName -Force
+
+    $result = $null
+    try { $result = $out | ConvertFrom-Json } catch { throw "Modrinth returned non-JSON: $out" }
+    if ($result.error) { throw "Modrinth error: $($result.error) — $($result.description)" }
+    Write-Host "  ok -> https://modrinth.com/mod/$Slug/version/$($result.version_number)" -ForegroundColor Green
 }
 
 Write-Host "`nDone. All versions uploaded." -ForegroundColor Green
