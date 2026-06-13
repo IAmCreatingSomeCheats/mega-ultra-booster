@@ -1,3 +1,9 @@
+<!--
+  MEGA Ultra Booster
+  Copyright (c) 2026 IAmCreatingSomeCheats. All Rights Reserved.
+  Proprietary software — unauthorized use, copying, or distribution is
+  prohibited. See the LICENSE file for full terms.
+-->
 <Window x:Class="MegaUltraBooster.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

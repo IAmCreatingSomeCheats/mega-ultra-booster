@@ -1,3 +1,10 @@
+/*
+ * MEGA Ultra Booster
+ * Copyright (c) 2026 IAmCreatingSomeCheats. All Rights Reserved.
+ * Proprietary software — unauthorized use, copying, modification, or
+ * distribution of this source code is prohibited. See LICENSE for terms.
+ */
+
 package com.megaultra.turboboost.server;
 
 /** One saved server in the smart switcher list (mirrors shared/servers.example.json). */
