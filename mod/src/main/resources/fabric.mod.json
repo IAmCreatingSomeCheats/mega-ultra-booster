@@ -10,7 +10,7 @@
   "contact": {
     "homepage": "https://modrinth.com/mod/turboboost"
   },
-  "license": "MIT",
+  "license": "ARR",
   "icon": "assets/turboboost/icon.png",
   "environment": "client",
   "entrypoints": {

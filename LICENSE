@@ -1,21 +1,35 @@
-MIT License
+MEGA Ultra Booster — Proprietary License
+Copyright (c) 2026 IAmCreatingSomeCheats. All Rights Reserved.
 
-Copyright (c) 2026 MEGA Ultra Booster
+This software, including the "TurboBoost" Minecraft mod, the "MEGA Ultra Booster"
+desktop application, and all accompanying source code, assets, and documentation
+(collectively, the "Software"), is proprietary and confidential.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+NO LICENSE TO THE SOURCE CODE IS GRANTED.
+You are NOT permitted to use, copy, modify, merge, publish, distribute,
+sublicense, sell, reverse-engineer, or create derivative works of the Software or
+any portion of its source code, in whole or in part, by any means, without the
+prior written permission of the copyright holder. Viewing this source code (for
+example, on a public source-code repository) does not grant any such rights.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+LIMITED END-USER PERMISSION.
+Permission is granted to end users to download and run the compiled, unmodified
+Software (the TurboBoost mod and the MEGA Ultra Booster application) for personal,
+non-commercial use only. Redistributing, rehosting, or reuploading the compiled
+Software, or bundling it into modpacks or other distributions, is not permitted
+without the prior written permission of the copyright holder.
 
+THIRD-PARTY COMPONENTS.
+The Software depends on, but does not include, third-party projects (such as
+Minecraft, Fabric Loader, the Fabric API, Sodium, and Lithium). Those components
+remain under their own respective licenses and are not covered by this license.
+
+NO WARRANTY.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+For permission requests, contact: realhacke9r@outlook.com

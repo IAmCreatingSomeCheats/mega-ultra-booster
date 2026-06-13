@@ -7,7 +7,7 @@ Everything you need is ready in this folder:
 | The mod jar to upload | `build/libs/turboboost-1.0.0.jar` |
 | Project icon (512×512) | `modrinth-icon.png` |
 | Description (paste into the page) | `MODRINTH_DESCRIPTION.md` |
-| License | `LICENSE` (MIT) |
+| License | `LICENSE` (All Rights Reserved) |
 
 The slug **`turboboost`** was free when checked — claim it before someone else does.
 
@@ -28,7 +28,7 @@ Top-right avatar → **Creator dashboard** → **Projects** → **Create a proje
 | **Summary** | `One-key FPS profiles, a live FPS/RAM overlay, dynamic FPS, and a smart server switcher — with an optional desktop companion app. Pairs with Sodium + Lithium.` |
 | **Icon** | upload `modrinth-icon.png` |
 | **Description** | paste the full contents of `MODRINTH_DESCRIPTION.md` |
-| **License** | `MIT` |
+| **License** | `All Rights Reserved` (ARR) |
 | **Environments** | Client: **Required** · Server: **Unsupported** (it's client-side) |
 | **Categories / tags** | `Optimization`, `Utility`, `Management` |
 | **Links** | leave Source/Issues blank for now (or add a GitHub repo later) |
@@ -71,7 +71,7 @@ set). Approval is usually quick.
   advantage — it doesn't, so don't imply it.
 - ✅ You're not bundling Sodium/Lithium/Fabric API — good (don't reupload other
   people's mods).
-- ✅ MIT license is set, and the `LICENSE` file is inside the jar.
+- ✅ All Rights Reserved license is set, and the `LICENSE` file is inside the jar.
 
 ## Updating later (optional, scriptable)
 For future versions you don't need to click through the site — see
