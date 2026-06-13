@@ -13,7 +13,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.render.RenderTickCounter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +23,10 @@ public final class FpsHudOverlay {
     private FpsHudOverlay() {}
 
     public static void register() {
-        HudRenderCallback.EVENT.register((DrawContext ctx, RenderTickCounter tick) -> render(ctx));
+        // Untyped lambda: the second arg is `float` (1.21.1) or `RenderTickCounter`
+        // (1.21.2+). We ignore it, so Java infers the right type per MC version and
+        // this compiles unchanged across all targets.
+        HudRenderCallback.EVENT.register((ctx, tickDelta) -> render(ctx));
     }
 
     private static void render(DrawContext ctx) {

@@ -1,89 +1,92 @@
 <#
 .SYNOPSIS
-    Upload a new TurboBoost version to an existing Modrinth project via the API.
+    Upload every TurboBoost jar in ./dist to an existing Modrinth project.
 
 .DESCRIPTION
-    Use this for version *updates* after you've created the project once on the
-    website (see PUBLISHING.md). It resolves your project slug to its id, attaches
-    the Fabric API (required) + Sodium/Lithium (optional) dependencies, and uploads
-    the jar.
+    Run build-all.ps1 first to produce ./dist/turboboost-<ver>+mc<mc>.jar for each
+    supported Minecraft version. This script uploads each one as its own Modrinth
+    version (version number "<ver>+mc<mc>", game version <mc>), attaching the
+    Fabric API (required) + Sodium/Lithium (optional) dependencies.
 
     Your token is read from -Token or the MODRINTH_TOKEN environment variable and is
-    never printed. Create one at: https://modrinth.com/settings/pats
+    never printed. Create one at https://modrinth.com/settings/pats
     (scope: "Create versions").
 
 .EXAMPLE
     $env:MODRINTH_TOKEN = "mrp_xxx"
-    ./publish-to-modrinth.ps1 -Version 1.0.1 -GameVersions 1.21.11 -Changelog "Fixed X"
+    ./build-all.ps1
+    ./publish-to-modrinth.ps1
 #>
 param(
-    [string]   $Slug         = "turboboost",
-    [string]   $Version      = "1.0.0",
-    [string]   $Jar          = "build/libs/turboboost-1.0.0.jar",
-    [string[]] $GameVersions = @("1.21.11"),
-    [string[]] $Loaders      = @("fabric"),
-    [ValidateSet("release","beta","alpha")]
-    [string]   $Channel      = "release",
-    [string]   $Changelog    = "New TurboBoost release.",
-    [string]   $Token        = $env:MODRINTH_TOKEN,
-    [switch]   $Yes          # skip the confirmation prompt
+    [string] $Slug    = "turboboost",
+    [string] $DistDir = (Join-Path $PSScriptRoot 'dist'),
+    [ValidateSet("release", "beta", "alpha")]
+    [string] $Channel = "release",
+    [string] $Token   = $env:MODRINTH_TOKEN,
+    [switch] $Yes     # skip the confirmation prompt
 )
 
 $ErrorActionPreference = "Stop"
 $api = "https://api.modrinth.com/v2"
-$ua  = "megaultra/turboboost/$Version (Modrinth publish script)"
 
 # Well-known Modrinth project ids for dependencies
 $FABRIC_API = "P7dR8mSH"
 $SODIUM     = "AANobbMI"
 $LITHIUM    = "gvQqBUqZ"
 
-if (-not $Token)            { throw "No token. Set `$env:MODRINTH_TOKEN or pass -Token. Make one at https://modrinth.com/settings/pats" }
-$jarPath = Resolve-Path -LiteralPath $Jar
+if (-not $Token) { throw "No token. Set `$env:MODRINTH_TOKEN or pass -Token. Make one at https://modrinth.com/settings/pats" }
+
+$jars = Get-ChildItem $DistDir -Filter 'turboboost-*+mc*.jar' -ErrorAction SilentlyContinue
+if (-not $jars) { throw "No jars in $DistDir. Run ./build-all.ps1 first." }
+
+$ua = "megaultra/turboboost (Modrinth publish script)"
 $headers = @{ Authorization = $Token; "User-Agent" = $ua }
 
-# 1) Resolve slug -> project id
+# Resolve slug -> project id
 Write-Host "Resolving project '$Slug'..." -ForegroundColor Cyan
 $project = Invoke-RestMethod -Uri "$api/project/$Slug" -Headers $headers
-$projectId = $project.id
-Write-Host "  -> $($project.title)  (id $projectId)" -ForegroundColor Green
+Write-Host "  -> $($project.title)  (id $($project.id))" -ForegroundColor Green
 
-# 2) Build the version metadata
-$data = [ordered]@{
-    name           = "TurboBoost $Version"
-    version_number = $Version
-    changelog      = $Changelog
-    game_versions  = $GameVersions
-    version_type   = $Channel
-    loaders        = $Loaders
-    featured       = $true
-    project_id     = $projectId
-    file_parts     = @("file")
-    primary_file   = "file"
-    dependencies   = @(
-        @{ project_id = $FABRIC_API; dependency_type = "required" },
-        @{ project_id = $SODIUM;     dependency_type = "optional" },
-        @{ project_id = $LITHIUM;    dependency_type = "optional" }
-    )
+# Plan: parse mc version + mod version out of each jar name
+$plan = foreach ($j in $jars) {
+    if ($j.Name -match '^turboboost-(.+)\+mc(.+)\.jar$') {
+        [pscustomobject]@{ Jar = $j; ModVer = $Matches[1]; Mc = $Matches[2] }
+    }
 }
-$json = $data | ConvertTo-Json -Depth 6 -Compress
 
-Write-Host ""
-Write-Host "About to publish:" -ForegroundColor Yellow
-Write-Host "  project : $($project.title) ($Slug)"
-Write-Host "  version : $Version  [$Channel]"
-Write-Host "  mc      : $($GameVersions -join ', ')   loaders: $($Loaders -join ', ')"
-Write-Host "  file    : $jarPath"
+Write-Host "`nAbout to publish $($plan.Count) version(s) to '$($project.title)':" -ForegroundColor Yellow
+$plan | ForEach-Object { Write-Host ("  {0,-8}  ->  {1}+mc{0}" -f $_.Mc, $_.ModVer) }
 if (-not $Yes) {
-    $ok = Read-Host "Type 'yes' to upload"
-    if ($ok -ne "yes") { Write-Host "Aborted." -ForegroundColor Red; return }
+    if ((Read-Host "Type 'yes' to upload all") -ne "yes") { Write-Host "Aborted." -ForegroundColor Red; return }
 }
 
-# 3) Multipart upload (PowerShell 7 -Form handles multipart/form-data)
-$resp = Invoke-RestMethod -Uri "$api/version" -Method Post -Headers $headers -Form @{
-    data = $json
-    file = Get-Item -LiteralPath $jarPath
+foreach ($p in $plan) {
+    $versionNumber = "$($p.ModVer)+mc$($p.Mc)"
+    $data = [ordered]@{
+        name           = "TurboBoost $($p.ModVer) (MC $($p.Mc))"
+        version_number = $versionNumber
+        changelog      = "TurboBoost $($p.ModVer) for Minecraft $($p.Mc)."
+        game_versions  = @($p.Mc)
+        version_type   = $Channel
+        loaders        = @("fabric")
+        featured       = ($p.Mc -eq "1.21.11")   # feature the newest
+        project_id     = $project.id
+        file_parts     = @("file")
+        primary_file   = "file"
+        dependencies   = @(
+            @{ project_id = $FABRIC_API; dependency_type = "required" },
+            @{ project_id = $SODIUM;     dependency_type = "optional" },
+            @{ project_id = $LITHIUM;    dependency_type = "optional" }
+        )
+    }
+    $json = $data | ConvertTo-Json -Depth 6 -Compress
+
+    Write-Host "Uploading $versionNumber ..." -ForegroundColor Cyan
+    $resp = Invoke-RestMethod -Uri "$api/version" -Method Post -Headers $headers -Form @{
+        data = $json
+        file = $p.Jar
+    }
+    Write-Host "  ok -> https://modrinth.com/mod/$Slug/version/$($resp.version_number)" -ForegroundColor Green
 }
 
-Write-Host ""
-Write-Host "Published!  https://modrinth.com/mod/$Slug/version/$($resp.version_number)" -ForegroundColor Green
+Write-Host "`nDone. All versions uploaded." -ForegroundColor Green

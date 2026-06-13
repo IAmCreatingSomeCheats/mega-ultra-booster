@@ -7,6 +7,7 @@
 
 package com.megaultra.turboboost;
 
+import com.megaultra.turboboost.compat.Compat;
 import com.megaultra.turboboost.config.BoostConfig;
 import com.megaultra.turboboost.hud.FpsHudOverlay;
 import com.megaultra.turboboost.link.AppLinkClient;
@@ -22,9 +23,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +36,6 @@ public class TurboBoostClient implements ClientModInitializer {
     public static final String MOD_ID = "turboboost";
     public static final String MOD_VERSION = "1.0.0";
     public static final Logger LOGGER = LoggerFactory.getLogger("TurboBoost");
-
-    /** 1.21.11 key categories are objects, not strings. */
-    private static final KeyBinding.Category KEY_CATEGORY =
-            KeyBinding.Category.create(Identifier.of("turboboost", "main"));
 
     private static BoostConfig config;
     private static AppLinkClient link;
@@ -85,12 +80,12 @@ public class TurboBoostClient implements ClientModInitializer {
     }
 
     private void registerKeybinds() {
-        toggleHudKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.turboboost.toggle_hud", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, KEY_CATEGORY));
-        boostNowKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.turboboost.boost_now", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F7, KEY_CATEGORY));
-        quickSwitchKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.turboboost.quick_switch", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, KEY_CATEGORY));
+        toggleHudKey = KeyBindingHelper.registerKeyBinding(
+                Compat.get().createKeyBind("key.turboboost.toggle_hud", GLFW.GLFW_KEY_F6));
+        boostNowKey = KeyBindingHelper.registerKeyBinding(
+                Compat.get().createKeyBind("key.turboboost.boost_now", GLFW.GLFW_KEY_F7));
+        quickSwitchKey = KeyBindingHelper.registerKeyBinding(
+                Compat.get().createKeyBind("key.turboboost.quick_switch", GLFW.GLFW_KEY_K));
     }
 
     private void onClientTick(MinecraftClient client) {

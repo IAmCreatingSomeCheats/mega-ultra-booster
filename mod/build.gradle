@@ -3,11 +3,36 @@ plugins {
     id 'maven-publish'
 }
 
-version = project.mod_version
+// ── Multi-version matrix ─────────────────────────────────────────────────────
+// Pick a target with  -Pmcver=1.21.8  (defaults to 1.21.11). build-all.ps1 loops
+// every entry. Each version mixes in its legacy/modern compat source overlay.
+def MC_MATRIX = [
+    '1.21.1' : [yarn: '1.21.1+build.3',  loader: '0.16.10', fapi: '0.116.12+1.21.1', overlay: 'v1_21_1'],
+    '1.21.4' : [yarn: '1.21.4+build.8',  loader: '0.16.10', fapi: '0.119.4+1.21.4',  overlay: 'legacy'],
+    '1.21.8' : [yarn: '1.21.8+build.1',  loader: '0.16.10', fapi: '0.136.1+1.21.8',  overlay: 'legacy'],
+    '1.21.11': [yarn: '1.21.11+build.6', loader: '0.19.3',  fapi: '0.141.4+1.21.11', overlay: 'modern'],
+]
+def mcver = (project.findProperty('mcver') ?: '1.21.11').toString()
+def mc = MC_MATRIX[mcver]
+if (mc == null) {
+    throw new GradleException("Unknown -Pmcver=${mcver}. Valid: ${MC_MATRIX.keySet().join(', ')}")
+}
+logger.lifecycle("TurboBoost: building for Minecraft ${mcver} (${mc.overlay} compat)")
+
+version = "${project.mod_version}+mc${mcver}"
 group = project.maven_group
 
 base {
     archivesName = project.archives_base_name
+}
+
+// Mix in the version-specific compat overlay (provides CompatImpl).
+sourceSets {
+    main {
+        java {
+            srcDir "src/${mc.overlay}/java"
+        }
+    }
 }
 
 repositories {
@@ -15,16 +40,17 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    minecraft "com.mojang:minecraft:${mcver}"
+    mappings "net.fabricmc:yarn:${mc.yarn}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${mc.loader}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${mc.fapi}"
 }
 
 processResources {
     inputs.property "version", project.version
+    inputs.property "mcver", mcver
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand version: project.version, minecraft: mcver
     }
 }
 

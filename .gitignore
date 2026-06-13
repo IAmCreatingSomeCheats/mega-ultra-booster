@@ -4,6 +4,7 @@
 build/
 out/
 run/
+dist/
 *.class
 
 # .NET (app)

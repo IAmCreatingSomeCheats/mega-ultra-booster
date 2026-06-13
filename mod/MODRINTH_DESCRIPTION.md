@@ -41,7 +41,7 @@ optimizes your PC.
 
 ## Requirements
 
-- **Minecraft 1.21.11** (Fabric)
+- **Minecraft 1.21.1, 1.21.4, 1.21.8, or 1.21.11** (Fabric) — download the jar matching your version
 - **[Fabric API](https://modrinth.com/mod/fabric-api)** — required
 - **[Sodium](https://modrinth.com/mod/sodium)** + **[Lithium](https://modrinth.com/mod/lithium)** — strongly recommended (not bundled)
 

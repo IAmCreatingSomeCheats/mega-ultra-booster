@@ -8,11 +8,11 @@
 package com.megaultra.turboboost.perf;
 
 import com.megaultra.turboboost.TurboBoostClient;
+import com.megaultra.turboboost.compat.Compat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.GraphicsMode;
-import net.minecraft.particle.ParticlesMode;
 
 /**
  * Applies / reverts a {@link BoostProfile} by driving the vanilla video options.
@@ -39,9 +39,9 @@ public final class PerformanceManager {
             o.getViewDistance().setValue(clamp(p.renderDistance, 2, 32));
         }
         o.getMaxFps().setValue(p.maxFps <= 0 ? 260 : clamp(p.maxFps, 10, 260));
-        o.getPreset().setValue(p.graphicsFast ? GraphicsMode.FAST : GraphicsMode.FANCY);
+        Compat.get().graphicsOption(o).setValue(p.graphicsFast ? GraphicsMode.FAST : GraphicsMode.FANCY);
         o.getCloudRenderMode().setValue(p.cloudsOff ? CloudRenderMode.OFF : CloudRenderMode.FANCY);
-        o.getParticles().setValue(parseParticles(p.particles));
+        Compat.get().applyParticles(o, p.particles);
         o.getEntityShadows().setValue(p.entityShadows);
         o.getEnableVsync().setValue(p.vsync);
         o.getEntityDistanceScaling().setValue(clampD(p.entityDistance, 0.5, 1.0));
@@ -66,9 +66,9 @@ public final class PerformanceManager {
         if (o == null) return;
         o.getViewDistance().setValue(clamp(p.renderDistance, 2, 32));
         o.getMaxFps().setValue(p.maxFps <= 0 ? 260 : p.maxFps);
-        o.getPreset().setValue(p.graphicsFast ? GraphicsMode.FAST : GraphicsMode.FANCY);
+        Compat.get().graphicsOption(o).setValue(p.graphicsFast ? GraphicsMode.FAST : GraphicsMode.FANCY);
         o.getCloudRenderMode().setValue(p.cloudsOff ? CloudRenderMode.OFF : CloudRenderMode.FANCY);
-        o.getParticles().setValue(parseParticles(p.particles));
+        Compat.get().applyParticles(o, p.particles);
         o.getEntityShadows().setValue(p.entityShadows);
         o.getEnableVsync().setValue(p.vsync);
         o.getEntityDistanceScaling().setValue(clampD(p.entityDistance, 0.5, 1.0));
@@ -79,26 +79,13 @@ public final class PerformanceManager {
         BoostProfile s = new BoostProfile();
         s.renderDistance = o.getViewDistance().getValue();
         s.maxFps = o.getMaxFps().getValue();
-        s.graphicsFast = o.getPreset().getValue() == GraphicsMode.FAST;
+        s.graphicsFast = Compat.get().graphicsOption(o).getValue() == GraphicsMode.FAST;
         s.cloudsOff = o.getCloudRenderMode().getValue() == CloudRenderMode.OFF;
-        s.particles = switch (o.getParticles().getValue()) {
-            case ALL -> "all";
-            case DECREASED -> "decreased";
-            case MINIMAL -> "minimal";
-        };
+        s.particles = Compat.get().readParticles(o);
         s.entityShadows = o.getEntityShadows().getValue();
         s.vsync = o.getEnableVsync().getValue();
         s.entityDistance = o.getEntityDistanceScaling().getValue();
         return s;
-    }
-
-    private static ParticlesMode parseParticles(String s) {
-        if (s == null) return ParticlesMode.MINIMAL;
-        return switch (s.toLowerCase()) {
-            case "all" -> ParticlesMode.ALL;
-            case "decreased" -> ParticlesMode.DECREASED;
-            default -> ParticlesMode.MINIMAL;
-        };
     }
 
     private static int clamp(int v, int lo, int hi) {

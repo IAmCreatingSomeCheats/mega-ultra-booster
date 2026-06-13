@@ -29,8 +29,9 @@ public final class ServerSwitcher {
         TurboBoostClient.actionBar("§b⚡ Switching to §f" + name + " §7(" + address + ")");
 
         // Leave the current world/server first (no-op at the main menu).
+        // disconnect(Screen, boolean) is the one overload common to 1.21.1–1.21.11.
         if (client.world != null) {
-            client.disconnectWithProgressScreen();
+            client.disconnect(new TitleScreen(), false);
         }
 
         ServerAddress addr = ServerAddress.parse(address);

@@ -1,6 +1,6 @@
 # TurboBoost (Fabric mod)
 
-The in-game half of MEGA Ultra Booster, for **Minecraft 1.21.11 / Fabric**.
+The in-game half of MEGA Ultra Booster — for **Minecraft 1.21.1 – 1.21.11 / Fabric**.
 
 * One-key performance profile (fast graphics, clouds off, minimal particles, no
   entity shadows, tuned render + entity distance, vsync off).
@@ -12,31 +12,41 @@ The in-game half of MEGA Ultra Booster, for **Minecraft 1.21.11 / Fabric**.
   your local list).
 * **Live link** to the desktop app over `127.0.0.1:38910`.
 
-> ✅ Built & verified against real `1.21.11` + yarn `1.21.11+build.6` mappings →
-> `build/libs/turboboost-1.0.0.jar` (Gradle 9.5.1, Loom 1.14.10).
+> ✅ Built & verified against real mappings for **1.21.1, 1.21.4, 1.21.8, and
+> 1.21.11** (Gradle 9.5.1, Loom 1.14.10). The mod has **no mixins**, so it stays
+> robust across MC updates.
+
+## Supported versions
+
+| Minecraft | yarn | Fabric API | jar |
+|-----------|------|-----------|-----|
+| 1.21.1  | `1.21.1+build.3`  | `0.116.12+1.21.1`  | `turboboost-1.0.0+mc1.21.1.jar` |
+| 1.21.4  | `1.21.4+build.8`  | `0.119.4+1.21.4`   | `turboboost-1.0.0+mc1.21.4.jar` |
+| 1.21.8  | `1.21.8+build.1`  | `0.136.1+1.21.8`   | `turboboost-1.0.0+mc1.21.8.jar` |
+| 1.21.11 | `1.21.11+build.6` | `0.141.4+1.21.11`  | `turboboost-1.0.0+mc1.21.11.jar` |
 
 ## Build
 
 From this `mod/` folder:
 
-```bash
-./gradlew build          # macOS/Linux/Git-Bash
-gradlew.bat build        # Windows cmd/PowerShell
+```powershell
+# one specific version:
+./gradlew build -Pmcver=1.21.8       # (defaults to 1.21.11 if omitted)
+
+# every supported version into ./dist:
+./build-all.ps1
 ```
 
 The Gradle wrapper downloads everything it needs, including a **JDK 21 toolchain**
 to compile against (via the Foojay resolver) — you don't need to install JDK 21
-yourself even on a newer JDK. The finished mod is:
-
-```
-build/libs/turboboost-1.0.0.jar
-```
+yourself even on a newer JDK. Per-version jars land in `build/libs/` (and
+`build-all.ps1` collects them into `dist/`).
 
 ## Install
 
-1. Install **Fabric Loader** (0.19.3+) for **Minecraft 1.21.11**.
+1. Install **Fabric Loader** (0.16+) for **your** Minecraft version.
 2. Put these in `.minecraft/mods`:
-   * `turboboost-1.0.0.jar` (this mod)
+   * the **TurboBoost jar that matches your MC version** (see the table above)
    * **Fabric API** — https://modrinth.com/mod/fabric-api
    * **Sodium** + **Lithium** *(strongly recommended — they do the heavy
      engine-level optimization TurboBoost intentionally doesn't reinvent)*
@@ -58,11 +68,25 @@ build/libs/turboboost-1.0.0.jar
 * `turboboost-servers.json` — offline fallback server list (the app's list is
   authoritative when connected).
 
-## Updating to a newer Minecraft version
+## How multi-version works (no mixins, no Stonecutter)
 
-Edit `gradle.properties` and bump `minecraft_version`, `yarn_mappings`,
-`loader_version`, and `fabric_version` to a matching set from
-**https://fabricmc.net/develop**, then rebuild. The only code that tends to need
-attention across versions is the `ConnectScreen.connect(...)` call in
-[`ServerSwitcher.java`](src/main/java/com/megaultra/turboboost/server/ServerSwitcher.java)
-(its signature changes occasionally — check on https://linkie.shedaniel.dev).
+All shared code lives in `src/main/java`. The handful of APIs that differ between
+MC versions are isolated behind the [`TbCompat`](src/main/java/com/megaultra/turboboost/compat/TbCompat.java)
+interface, and each version supplies a `CompatImpl` in its own **source overlay**,
+mixed into the build by the `MC_MATRIX` in [`build.gradle`](build.gradle):
+
+| overlay | versions | differences |
+|---------|----------|-------------|
+| `src/v1_21_1` | 1.21.1 | `getGraphicsMode()`, String keybind category, `ParticlesMode` in `client.option` |
+| `src/legacy`  | 1.21.4, 1.21.8 | `getGraphicsMode()`, String keybind category, `ParticlesMode` in `net.minecraft.particle` |
+| `src/modern`  | 1.21.11 | `getPreset()`, `KeyBinding.Category`, `ParticlesMode` in `net.minecraft.particle` |
+
+The HUD render callback (its 2nd arg changed from `float` to `RenderTickCounter`)
+is handled with an untyped lambda in
+[`FpsHudOverlay`](src/main/java/com/megaultra/turboboost/hud/FpsHudOverlay.java),
+so it needs no overlay.
+
+**To add another version:** add a row to `MC_MATRIX` (get the coordinates from
+https://fabricmc.net/develop), point it at the closest overlay, run
+`./gradlew build -Pmcver=<new>`, and fix any compile error by moving the offending
+call into `TbCompat` + the overlays.

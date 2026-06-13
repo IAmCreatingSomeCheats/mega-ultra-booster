@@ -4,7 +4,7 @@ Everything you need is ready in this folder:
 
 | What | File |
 |------|------|
-| The mod jar to upload | `build/libs/turboboost-1.0.0.jar` |
+| The mod jars to upload (one per MC version) | `dist/turboboost-1.0.0+mc<version>.jar` (run `./build-all.ps1`) |
 | Project icon (512×512) | `modrinth-icon.png` |
 | Description (paste into the page) | `MODRINTH_DESCRIPTION.md` |
 | License | `LICENSE` (All Rights Reserved) |
@@ -35,26 +35,32 @@ Top-right avatar → **Creator dashboard** → **Projects** → **Create a proje
 
 Save the draft.
 
-## Step 3 — Upload the version
-Inside the project → **Versions** → **Create version**.
+## Step 3 — Upload the versions
+TurboBoost ships a **separate jar per Minecraft version** (mappings differ), so
+each MC version is its own Modrinth "version". Inside the project →
+**Versions** → **Create version**, and repeat for each jar in `dist/`:
 
 | Field | Value |
 |-------|-------|
-| **Version number** | `1.0.0` |
-| **Version title** | `TurboBoost 1.0.0` |
+| **Version number** | `1.0.0+mc<version>` (e.g. `1.0.0+mc1.21.8`) — must be unique |
+| **Version title** | `TurboBoost 1.0.0 (MC <version>)` |
 | **Release channel** | Release |
 | **Loaders** | `Fabric` |
-| **Game versions** | `1.21.11` |
-| **Primary file** | upload `build/libs/turboboost-1.0.0.jar` |
+| **Game versions** | the matching version only (e.g. `1.21.8`) |
+| **Primary file** | the matching `dist/turboboost-1.0.0+mc<version>.jar` |
 | **Changelog** | `First release: Boost profile, FPS/RAM overlay, dynamic FPS, smart server switcher, and the desktop app live-link.` |
 
-**Dependencies** (add these on the version page):
+**Dependencies** (add to each version):
 - **Fabric API** → type **Required**
 - **Sodium** → type **Optional**
 - **Lithium** → type **Optional**
 
-> Tip: the sources jar (`turboboost-1.0.0-sources.jar`) is optional — only upload
-> it as an *additional* file if you want source available; it is **not** the file
+> ⚡ **Faster:** instead of doing all four by hand, run `./build-all.ps1` then
+> `./publish-to-modrinth.ps1` — it uploads every jar in `dist/` as its own version
+> with the right game version + dependencies. (The very first publish still needs
+> the project created via Steps 1–2 on the website.)
+
+> Tip: don't upload the `-sources.jar` files — those are source, not the mod
 > people install.
 
 ## Step 4 — Submit for review
@@ -73,7 +79,13 @@ set). Approval is usually quick.
   people's mods).
 - ✅ All Rights Reserved license is set, and the `LICENSE` file is inside the jar.
 
-## Updating later (optional, scriptable)
-For future versions you don't need to click through the site — see
-`publish-to-modrinth.ps1` in this folder, which uploads a new version via the
-Modrinth API with a token. (The first publish is easiest via the website above.)
+## Updating later (scriptable)
+You don't need to click through the site for updates:
+
+```powershell
+$env:MODRINTH_TOKEN = "mrp_xxx"   # from https://modrinth.com/settings/pats
+./build-all.ps1                    # builds every version into dist/
+./publish-to-modrinth.ps1          # uploads each as its own Modrinth version
+```
+
+(The first publish still needs the project itself created via Steps 1–2.)
