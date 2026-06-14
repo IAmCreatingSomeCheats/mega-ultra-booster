@@ -29,6 +29,36 @@ public class BoostProfile {
         return new BoostProfile();
     }
 
+    /** Max FPS — lowest settings. */
+    public static BoostProfile potato() {
+        BoostProfile p = new BoostProfile();
+        p.renderDistance = 4;
+        p.particles = "minimal";
+        p.entityDistance = 0.5;
+        return p;
+    }
+
+    /** A sensible middle ground. */
+    public static BoostProfile balanced() {
+        BoostProfile p = new BoostProfile();
+        p.renderDistance = 8;
+        p.particles = "decreased";
+        p.entityDistance = 0.75;
+        return p;
+    }
+
+    /** Lightest boost — keeps it pretty (fancy graphics, clouds, shadows). */
+    public static BoostProfile quality() {
+        BoostProfile p = new BoostProfile();
+        p.renderDistance = 12;
+        p.graphicsFast = false;
+        p.cloudsOff = false;
+        p.particles = "all";
+        p.entityShadows = true;
+        p.entityDistance = 1.0;
+        return p;
+    }
+
     public static BoostProfile fromJson(JsonObject o) {
         BoostProfile p = new BoostProfile();
         if (o == null) return p;

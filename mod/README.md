@@ -58,8 +58,13 @@ yourself even on a newer JDK. Per-version jars land in `build/libs/` (and
 | Key | Action |
 |-----|--------|
 | **F6** | Toggle the FPS/RAM overlay |
-| **F7** | Apply the boost profile now |
+| **F7** | Cycle boost profile (Off → Quality → Balanced → Potato) |
+| **F8** | Clean RAM (free heap, reports MB freed) |
+| **F9** | Benchmark FPS (5s baseline → boost → 5s, shows the gain) |
 | **K**  | Quick-switch to the quietest server in your category |
+
+Plus **Auto-Boost**: applies the boost automatically if in-world FPS sits below
+`autoBoostFpsThreshold` (default 30) for ~3s.
 
 ## Config (auto-created in `.minecraft/config/`)
 

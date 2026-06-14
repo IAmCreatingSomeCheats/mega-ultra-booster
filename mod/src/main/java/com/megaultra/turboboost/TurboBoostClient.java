@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TurboBoostClient implements ClientModInitializer {
     public static final String MOD_ID = "turboboost";
-    public static final String MOD_VERSION = "1.1.0";
+    public static final String MOD_VERSION = "1.2.0";
     public static final Logger LOGGER = LoggerFactory.getLogger("TurboBoost");
 
     private static BoostConfig config;
@@ -44,12 +44,22 @@ public class TurboBoostClient implements ClientModInitializer {
     private static final FpsStats fpsStats = new FpsStats();
 
     private KeyBinding toggleHudKey;
-    private KeyBinding boostNowKey;
+    private KeyBinding boostCycleKey;
     private KeyBinding quickSwitchKey;
+    private KeyBinding ramCleanKey;
+    private KeyBinding benchmarkKey;
     private final DynamicFps dynamicFps = new DynamicFps();
     private int telemetryTimer = 0;
     private int lowFpsTicks = 0;       // sustained-low counter for Auto-Boost
     private boolean autoBoosted = false;
+    private int boostLevel = 0;        // 0 Off · 1 Quality · 2 Balanced · 3 Potato
+
+    // Benchmark state machine (0 idle · 1 baseline · 2 boosted)
+    private int benchState = 0;
+    private int benchTicks = 0;
+    private long benchSum = 0;
+    private int benchCount = 0;
+    private int benchBefore = 0;
 
     public static BoostConfig getConfig() {
         return config;
@@ -90,10 +100,14 @@ public class TurboBoostClient implements ClientModInitializer {
     private void registerKeybinds() {
         toggleHudKey = KeyBindingHelper.registerKeyBinding(
                 Compat.get().createKeyBind("key.turboboost.toggle_hud", GLFW.GLFW_KEY_F6));
-        boostNowKey = KeyBindingHelper.registerKeyBinding(
-                Compat.get().createKeyBind("key.turboboost.boost_now", GLFW.GLFW_KEY_F7));
+        boostCycleKey = KeyBindingHelper.registerKeyBinding(
+                Compat.get().createKeyBind("key.turboboost.boost_cycle", GLFW.GLFW_KEY_F7));
         quickSwitchKey = KeyBindingHelper.registerKeyBinding(
                 Compat.get().createKeyBind("key.turboboost.quick_switch", GLFW.GLFW_KEY_K));
+        ramCleanKey = KeyBindingHelper.registerKeyBinding(
+                Compat.get().createKeyBind("key.turboboost.ram_clean", GLFW.GLFW_KEY_F8));
+        benchmarkKey = KeyBindingHelper.registerKeyBinding(
+                Compat.get().createKeyBind("key.turboboost.benchmark", GLFW.GLFW_KEY_F9));
     }
 
     private void onClientTick(MinecraftClient client) {
@@ -102,16 +116,22 @@ public class TurboBoostClient implements ClientModInitializer {
             config.save();
             actionBar(config.hudEnabled ? "§a⚡ Overlay ON" : "§7⚡ Overlay OFF");
         }
-        while (boostNowKey.wasPressed()) {
-            PerformanceManager.applyProfile(BoostProfile.aggressive());
-            actionBar("§a⚡ Boost profile applied");
+        while (boostCycleKey.wasPressed()) {
+            cycleBoost();
         }
         while (quickSwitchKey.wasPressed()) {
             quickSwitch();
         }
+        while (ramCleanKey.wasPressed()) {
+            ramClean();
+        }
+        while (benchmarkKey.wasPressed()) {
+            startBenchmark(client);
+        }
 
         dynamicFps.tick(client, config);
         updateStatsAndAutoBoost(client);
+        tickBenchmark(client);
 
         if (link != null && link.isConnected() && client.world != null) {
             if (++telemetryTimer >= 20) { // ~once per second
@@ -161,6 +181,65 @@ public class TurboBoostClient implements ClientModInitializer {
             } else {
                 actionBar("§cNo servers tagged '" + category + "'. Add some in the app.");
             }
+        }
+    }
+
+    /** F7: cycle Off → Quality → Balanced → Potato. */
+    private void cycleBoost() {
+        boostLevel = (boostLevel + 1) % 4;
+        switch (boostLevel) {
+            case 1 -> { PerformanceManager.applyProfile(BoostProfile.quality());  actionBar("§a⚡ Boost: §fQuality §7(light)"); }
+            case 2 -> { PerformanceManager.applyProfile(BoostProfile.balanced()); actionBar("§a⚡ Boost: §fBalanced"); }
+            case 3 -> { PerformanceManager.applyProfile(BoostProfile.potato());   actionBar("§a⚡ Boost: §fPotato §7(max FPS)"); }
+            default -> { PerformanceManager.revert();                             actionBar("§7⚡ Boost: §fOff §7(settings restored)"); }
+        }
+    }
+
+    /** F8: ask the JVM to reclaim heap and report how much was freed. */
+    private void ramClean() {
+        Runtime rt = Runtime.getRuntime();
+        long before = rt.totalMemory() - rt.freeMemory();
+        System.gc();
+        long after = rt.totalMemory() - rt.freeMemory();
+        long freedMb = Math.max(0, before - after) / 1_048_576L;
+        actionBar("§a⚡ RAM cleaned — freed §f" + freedMb + " MB");
+    }
+
+    /** F9: measure avg FPS for 5s, apply the boost, measure 5s more, show the gain. */
+    private void startBenchmark(MinecraftClient client) {
+        if (benchState != 0) { actionBar("§e⚡ Benchmark already running…"); return; }
+        if (client.world == null) { actionBar("§c⚡ Benchmark: join a world first"); return; }
+        benchState = 1;
+        benchTicks = 100; // ~5 s at 20 tps
+        benchSum = 0;
+        benchCount = 0;
+        actionBar("§b⚡ Benchmark: measuring baseline (5s)…");
+    }
+
+    private void tickBenchmark(MinecraftClient client) {
+        if (benchState == 0) return;
+        if (client.world == null) { benchState = 0; return; } // aborted on disconnect
+
+        benchSum += client.getCurrentFps();
+        benchCount++;
+        if (--benchTicks > 0) return;
+
+        int avg = benchCount > 0 ? (int) (benchSum / benchCount) : 0;
+        if (benchState == 1) {
+            benchBefore = avg;
+            PerformanceManager.applyProfile(BoostProfile.potato());
+            boostLevel = 3;
+            benchSum = 0;
+            benchCount = 0;
+            benchTicks = 100;
+            benchState = 2;
+            actionBar("§b⚡ Boost applied — measuring boosted (5s)…");
+        } else {
+            benchState = 0;
+            int delta = avg - benchBefore;
+            int pct = benchBefore > 0 ? delta * 100 / benchBefore : 0;
+            String sign = delta >= 0 ? "+" : "";
+            actionBar("§a⚡ Benchmark: §f" + benchBefore + " → " + avg + " FPS §7(" + sign + delta + ", " + sign + pct + "%)");
         }
     }
 

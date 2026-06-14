@@ -2,6 +2,8 @@
   "category.turboboost": "TurboBoost",
   "key.categories.turboboost.main": "TurboBoost",
   "key.turboboost.toggle_hud": "Toggle FPS/RAM Overlay",
-  "key.turboboost.boost_now": "Apply Boost Profile",
-  "key.turboboost.quick_switch": "Quick-Switch to Easier Server"
+  "key.turboboost.boost_cycle": "Cycle Boost Profile (Off/Quality/Balanced/Potato)",
+  "key.turboboost.quick_switch": "Quick-Switch to Easier Server",
+  "key.turboboost.ram_clean": "Clean RAM (free heap)",
+  "key.turboboost.benchmark": "Benchmark FPS (before/after boost)"
 }
