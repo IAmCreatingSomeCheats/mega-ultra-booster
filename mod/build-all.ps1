@@ -24,7 +24,7 @@ foreach ($v in $versions) {
     Write-Host "`n==> Building TurboBoost for Minecraft $v" -ForegroundColor Cyan
     & "$root\gradlew.bat" -p $root build "-Pmcver=$v" --no-daemon
     if ($LASTEXITCODE -ne 0) { throw "Build failed for Minecraft $v" }
-    Copy-Item (Join-Path $root "build\libs\turboboost-1.0.0+mc$v.jar") $dist -Force
+    Copy-Item (Join-Path $root "build\libs\turboboost-*+mc$v.jar") $dist -Force
 }
 
 Write-Host "`nAll versions built ->" -ForegroundColor Green

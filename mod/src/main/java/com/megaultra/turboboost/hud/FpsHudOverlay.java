@@ -41,6 +41,13 @@ public final class FpsHudOverlay {
         lines.add("§b⚡ TurboBoost");
         lines.add(fpsColor(fps) + fps + " FPS §7(" + frameTime(fps) + " ms)");
 
+        if (cfg.hudShowStats) {
+            var stats = TurboBoostClient.getFpsStats();
+            if (stats.hasData()) {
+                lines.add("§7avg §f" + stats.avg() + " §7· 1% low §f" + stats.onePercentLow());
+            }
+        }
+
         if (cfg.hudShowMemory) {
             Runtime rt = Runtime.getRuntime();
             long usedMb = (rt.totalMemory() - rt.freeMemory()) / 1_048_576L;

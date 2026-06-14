@@ -13,6 +13,7 @@ import com.megaultra.turboboost.hud.FpsHudOverlay;
 import com.megaultra.turboboost.link.AppLinkClient;
 import com.megaultra.turboboost.perf.BoostProfile;
 import com.megaultra.turboboost.perf.DynamicFps;
+import com.megaultra.turboboost.perf.FpsStats;
 import com.megaultra.turboboost.perf.PerformanceManager;
 import com.megaultra.turboboost.server.ServerEntry;
 import com.megaultra.turboboost.server.ServerStore;
@@ -34,21 +35,28 @@ import org.slf4j.LoggerFactory;
  */
 public class TurboBoostClient implements ClientModInitializer {
     public static final String MOD_ID = "turboboost";
-    public static final String MOD_VERSION = "1.0.0";
+    public static final String MOD_VERSION = "1.1.0";
     public static final Logger LOGGER = LoggerFactory.getLogger("TurboBoost");
 
     private static BoostConfig config;
     private static AppLinkClient link;
     private static ServerStore serverStore;
+    private static final FpsStats fpsStats = new FpsStats();
 
     private KeyBinding toggleHudKey;
     private KeyBinding boostNowKey;
     private KeyBinding quickSwitchKey;
     private final DynamicFps dynamicFps = new DynamicFps();
     private int telemetryTimer = 0;
+    private int lowFpsTicks = 0;       // sustained-low counter for Auto-Boost
+    private boolean autoBoosted = false;
 
     public static BoostConfig getConfig() {
         return config;
+    }
+
+    public static FpsStats getFpsStats() {
+        return fpsStats;
     }
 
     public static AppLinkClient getLink() {
@@ -103,12 +111,39 @@ public class TurboBoostClient implements ClientModInitializer {
         }
 
         dynamicFps.tick(client, config);
+        updateStatsAndAutoBoost(client);
 
         if (link != null && link.isConnected() && client.world != null) {
             if (++telemetryTimer >= 20) { // ~once per second
                 telemetryTimer = 0;
                 link.sendTelemetry();
             }
+        }
+    }
+
+    /** Feed the FPS window and trigger Auto-Boost once if FPS stays low in-world. */
+    private void updateStatsAndAutoBoost(MinecraftClient client) {
+        if (client.world == null) {
+            // Out of a world: reset so Auto-Boost can fire again next session.
+            lowFpsTicks = 0;
+            autoBoosted = false;
+            return;
+        }
+
+        int fps = client.getCurrentFps();
+        fpsStats.record(fps);
+
+        if (!config.autoBoostEnabled || autoBoosted) return;
+
+        if (fps > 0 && fps < config.autoBoostFpsThreshold) {
+            if (++lowFpsTicks >= 60) { // ~3 s sustained below the threshold
+                PerformanceManager.applyProfile(BoostProfile.aggressive());
+                autoBoosted = true;
+                lowFpsTicks = 0;
+                actionBar("§e⚡ Auto-Boost: FPS was low — applied boost profile");
+            }
+        } else {
+            lowFpsTicks = 0;
         }
     }
 

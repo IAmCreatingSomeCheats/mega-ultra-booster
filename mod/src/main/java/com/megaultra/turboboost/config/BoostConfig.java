@@ -29,10 +29,15 @@ public class BoostConfig {
     public boolean hudShowMemory = true;
     public boolean hudShowServer = true;
     public boolean hudShowLinkStatus = true;
+    public boolean hudShowStats = true;     // average + 1% low
 
     // ── Dynamic FPS (throttle while the window is unfocused) ──
     public boolean dynamicFps = true;
     public int unfocusedFps = 10;
+
+    // ── Auto-Boost (apply the boost profile when FPS stays low) ──
+    public boolean autoBoostEnabled = true;
+    public int autoBoostFpsThreshold = 30;  // trigger when FPS sits below this
 
     // ── Live link to the desktop app ──
     public boolean linkEnabled = true;
