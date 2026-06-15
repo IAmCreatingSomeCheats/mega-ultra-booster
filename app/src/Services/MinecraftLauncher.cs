@@ -85,18 +85,23 @@ public sealed class MinecraftLauncher
         }
     }
 
+    // Microsoft Store "AppsFolder" ids (stable per package family).
+    private const string JavaLauncherAumid = @"Microsoft.4297127D64EC6_8wekyb3d8bbwe!Minecraft";
+    private const string BedrockAumid = @"Microsoft.MinecraftUWP_8wekyb3d8bbwe!Game";
+
     /// <summary>Launch the Java edition via the official launcher (with the boosted profile).</summary>
     public string LaunchJava()
     {
+        // Standalone (non-Store) installs first.
         string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         string pfx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         string[] candidates =
         {
             Path.Combine(pfx86, "Minecraft Launcher", "MinecraftLauncher.exe"),
             Path.Combine(pf,    "Minecraft Launcher", "MinecraftLauncher.exe"),
-            Path.Combine(pfx86, "Minecraft", "MinecraftLauncher.exe"),
+            Path.Combine(local, "Programs", "Minecraft Launcher", "MinecraftLauncher.exe"),
         };
-
         foreach (var exe in candidates)
         {
             if (File.Exists(exe))
@@ -110,32 +115,41 @@ public sealed class MinecraftLauncher
             }
         }
 
-        // NOTE: deliberately no "minecraft://" fallback here — that URI is registered
-        // by the Bedrock UWP app on most systems, so it would open Bedrock instead.
+        // Microsoft Store unified launcher (most installs) — by its app id.
+        if (LaunchAumid(JavaLauncherAumid))
+            return "✔ Launching Java Minecraft (Store launcher)… pick the '⚡ MEGA Ultra Boosted' profile.";
+
         return "✖ Java launcher not found. Open the Minecraft Launcher yourself and pick '⚡ MEGA Ultra Boosted'.";
     }
 
     /// <summary>Launch the Bedrock edition (UWP). System tweaks only — Bedrock has no Java mods.</summary>
     public string LaunchBedrock()
     {
-        // Standard way to start a UWP app by its Application User Model ID.
+        if (LaunchAumid(BedrockAumid))
+            return "✔ Launching Minecraft Bedrock…";
+
         try
         {
-            Process.Start(new ProcessStartInfo("explorer.exe",
-                @"shell:AppsFolder\Microsoft.MinecraftUWP_8wekyb3d8bbwe!App") { UseShellExecute = true });
-            return "✔ Launching Minecraft Bedrock…";
+            Process.Start(new ProcessStartInfo("minecraft://") { UseShellExecute = true });
+            return "✔ Asked Windows to open Minecraft Bedrock…";
+        }
+        catch (Exception e)
+        {
+            return $"✖ Bedrock not found ({e.Message}). Install it from the Microsoft Store.";
+        }
+    }
+
+    /// <summary>Start a Microsoft Store app by its Application User Model ID.</summary>
+    private static bool LaunchAumid(string aumid)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe", $@"shell:AppsFolder\{aumid}") { UseShellExecute = true });
+            return true;
         }
         catch
         {
-            try
-            {
-                Process.Start(new ProcessStartInfo("minecraft://") { UseShellExecute = true });
-                return "✔ Asked Windows to open Minecraft Bedrock…";
-            }
-            catch (Exception e)
-            {
-                return $"✖ Bedrock not found ({e.Message}). Install it from the Microsoft Store.";
-            }
+            return false;
         }
     }
 }
