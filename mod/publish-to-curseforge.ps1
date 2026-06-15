@@ -56,7 +56,7 @@ $plan = foreach ($j in $jars) {
     }
 }
 
-Write-Host "`nAbout to upload $($plan.Count) file(s) to CurseForge project $ProjectId:" -ForegroundColor Yellow
+Write-Host "`nAbout to upload $($plan.Count) file(s) to CurseForge project ${ProjectId}:" -ForegroundColor Yellow
 $plan | ForEach-Object { Write-Host ("  {0,-8}  game-version ids: {1}" -f $_.Mc, ($_.GameVersionIds -join ', ')) }
 if (-not $Yes) {
     if ((Read-Host "Type 'yes' to upload all") -ne 'yes') { Write-Host 'Aborted.' -ForegroundColor Red; return }
