@@ -76,10 +76,13 @@ foreach ($p in $plan) {
     Set-Content -LiteralPath $tmp.FullName -Value $json -Encoding utf8NoBOM -NoNewline
 
     Write-Host "Uploading MC $($p.Mc) ..." -ForegroundColor Cyan
+    # metadata must be a normal form field (CurseForge rejects it as a file part).
+    # "<file" makes curl read the value from the temp file — also avoids Windows
+    # command-line quoting issues with the JSON.
     $curlArgs = @(
         '-s', '-X', 'POST', "$base/api/projects/$ProjectId/upload-file",
         '-H', "X-Api-Token: $Token",
-        '-F', "metadata=@$($tmp.FullName);type=application/json",
+        '-F', "metadata=<$($tmp.FullName)",
         '-F', "file=@$($p.Jar.FullName);type=application/java-archive"
     )
     $out = & curl.exe @curlArgs
