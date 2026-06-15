@@ -18,6 +18,7 @@ import com.megaultra.turboboost.perf.PerformanceManager;
 import com.megaultra.turboboost.server.ServerEntry;
 import com.megaultra.turboboost.server.ServerStore;
 import com.megaultra.turboboost.server.ServerSwitcher;
+import com.megaultra.turboboost.shader.IrisShaders;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TurboBoostClient implements ClientModInitializer {
     public static final String MOD_ID = "turboboost";
-    public static final String MOD_VERSION = "1.2.0";
+    public static final String MOD_VERSION = "1.3.0";
     public static final Logger LOGGER = LoggerFactory.getLogger("TurboBoost");
 
     private static BoostConfig config;
@@ -48,11 +49,13 @@ public class TurboBoostClient implements ClientModInitializer {
     private KeyBinding quickSwitchKey;
     private KeyBinding ramCleanKey;
     private KeyBinding benchmarkKey;
+    private KeyBinding shaderToggleKey;
     private final DynamicFps dynamicFps = new DynamicFps();
     private int telemetryTimer = 0;
     private int lowFpsTicks = 0;       // sustained-low counter for Auto-Boost
     private boolean autoBoosted = false;
     private int boostLevel = 0;        // 0 Off · 1 Quality · 2 Balanced · 3 Potato
+    private boolean shadersDisabledByBoost = false;
 
     // Benchmark state machine (0 idle · 1 baseline · 2 boosted)
     private int benchState = 0;
@@ -108,6 +111,8 @@ public class TurboBoostClient implements ClientModInitializer {
                 Compat.get().createKeyBind("key.turboboost.ram_clean", GLFW.GLFW_KEY_F8));
         benchmarkKey = KeyBindingHelper.registerKeyBinding(
                 Compat.get().createKeyBind("key.turboboost.benchmark", GLFW.GLFW_KEY_F9));
+        shaderToggleKey = KeyBindingHelper.registerKeyBinding(
+                Compat.get().createKeyBind("key.turboboost.shader_toggle", GLFW.GLFW_KEY_F10));
     }
 
     private void onClientTick(MinecraftClient client) {
@@ -127,6 +132,9 @@ public class TurboBoostClient implements ClientModInitializer {
         }
         while (benchmarkKey.wasPressed()) {
             startBenchmark(client);
+        }
+        while (shaderToggleKey.wasPressed()) {
+            toggleShaders();
         }
 
         dynamicFps.tick(client, config);
@@ -193,6 +201,33 @@ public class TurboBoostClient implements ClientModInitializer {
             case 3 -> { PerformanceManager.applyProfile(BoostProfile.potato());   actionBar("§a⚡ Boost: §fPotato §7(max FPS)"); }
             default -> { PerformanceManager.revert();                             actionBar("§7⚡ Boost: §fOff §7(settings restored)"); }
         }
+        applyShadersForBoostLevel();
+    }
+
+    /** Drop shaders on the heavier boost levels (and restore them on lighter/off). */
+    private void applyShadersForBoostLevel() {
+        if (!config.boostDisablesShaders || !IrisShaders.isAvailable()) return;
+        boolean wantOff = (boostLevel == 2 || boostLevel == 3); // Balanced / Potato
+        if (wantOff && IrisShaders.shadersEnabled()) {
+            IrisShaders.setShaders(false);
+            shadersDisabledByBoost = true;
+            actionBar("§7⚡ Shaders off for FPS — F10 to bring them back");
+        } else if (!wantOff && shadersDisabledByBoost) {
+            IrisShaders.setShaders(true);
+            shadersDisabledByBoost = false;
+        }
+    }
+
+    /** F10: manually toggle Iris shaders (panic FPS button). */
+    private void toggleShaders() {
+        if (!IrisShaders.isAvailable()) {
+            actionBar("§c⚡ Iris not installed — no shaders to toggle");
+            return;
+        }
+        boolean wasOn = IrisShaders.shadersEnabled();
+        IrisShaders.setShaders(!wasOn);
+        shadersDisabledByBoost = false; // manual override wins
+        actionBar(wasOn ? "§7⚡ Shaders §fOFF §7(max FPS)" : "§a⚡ Shaders §fON");
     }
 
     /** F8: ask the JVM to reclaim heap and report how much was freed. */

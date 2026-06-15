@@ -61,10 +61,14 @@ yourself even on a newer JDK. Per-version jars land in `build/libs/` (and
 | **F7** | Cycle boost profile (Off → Quality → Balanced → Potato) |
 | **F8** | Clean RAM (free heap, reports MB freed) |
 | **F9** | Benchmark FPS (5s baseline → boost → 5s, shows the gain) |
+| **F10** | Toggle Iris shaders on/off (instant FPS panic button) |
 | **K**  | Quick-switch to the quietest server in your category |
 
-Plus **Auto-Boost**: applies the boost automatically if in-world FPS sits below
-`autoBoostFpsThreshold` (default 30) for ~3s.
+Plus **Auto-Boost** (applies the boost when in-world FPS sits below
+`autoBoostFpsThreshold`, default 30, for ~3s) and **Iris integration**: the
+Balanced/Potato boost levels turn shaders off for FPS and back on at Off
+(`boostDisablesShaders`). All Iris access is via reflection on its stable v0 API,
+so it's a soft dependency — no Iris, no problem.
 
 ## Config (auto-created in `.minecraft/config/`)
 

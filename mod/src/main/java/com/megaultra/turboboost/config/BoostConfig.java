@@ -30,6 +30,7 @@ public class BoostConfig {
     public boolean hudShowServer = true;
     public boolean hudShowLinkStatus = true;
     public boolean hudShowStats = true;     // average + 1% low
+    public boolean hudShowShaders = true;   // Iris shader on/off (if installed)
 
     // ── Dynamic FPS (throttle while the window is unfocused) ──
     public boolean dynamicFps = true;
@@ -38,6 +39,11 @@ public class BoostConfig {
     // ── Auto-Boost (apply the boost profile when FPS stays low) ──
     public boolean autoBoostEnabled = true;
     public int autoBoostFpsThreshold = 30;  // trigger when FPS sits below this
+
+    // ── Shaders (Iris integration) ──
+    // Turn shaders off on the heavier boost levels (Balanced/Potato) for FPS,
+    // and back on when boost returns to Off. No-op if Iris isn't installed.
+    public boolean boostDisablesShaders = true;
 
     // ── Live link to the desktop app ──
     public boolean linkEnabled = true;

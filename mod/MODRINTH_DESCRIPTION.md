@@ -39,10 +39,13 @@ optimizes your PC.
 | **F7** | Cycle boost profile (Off → Quality → Balanced → Potato) |
 | **F8** | Clean RAM (free heap) |
 | **F9** | Benchmark FPS (before/after boost) |
+| **F10** | Toggle Iris shaders (instant FPS panic button) |
 | **K**  | Quick-switch to the quietest server in your category |
 
-Plus **Auto-Boost** (applies the boost automatically when FPS stays low) and a
-live **avg / 1% low** FPS readout in the overlay.
+Plus **Auto-Boost** (applies the boost automatically when FPS stays low), a live
+**avg / 1% low** readout in the overlay, and **Iris shader integration** — the
+heavier boost levels drop shaders for FPS and restore them when you boost back to
+Off (soft dependency: works fine without Iris).
 
 ## Requirements
 

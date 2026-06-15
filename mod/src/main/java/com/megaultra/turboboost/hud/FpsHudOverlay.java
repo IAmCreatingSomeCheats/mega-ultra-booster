@@ -9,6 +9,7 @@ package com.megaultra.turboboost.hud;
 
 import com.megaultra.turboboost.TurboBoostClient;
 import com.megaultra.turboboost.config.BoostConfig;
+import com.megaultra.turboboost.shader.IrisShaders;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -61,6 +62,9 @@ public final class FpsHudOverlay {
         if (cfg.hudShowLinkStatus) {
             boolean linked = TurboBoostClient.getLink() != null && TurboBoostClient.getLink().isConnected();
             lines.add(linked ? "§aLINK ✔" : "§8LINK ✖");
+        }
+        if (cfg.hudShowShaders && IrisShaders.isAvailable()) {
+            lines.add("§7Shaders " + (IrisShaders.shadersEnabled() ? "§aON" : "§8OFF"));
         }
 
         int x = cfg.hudX;
