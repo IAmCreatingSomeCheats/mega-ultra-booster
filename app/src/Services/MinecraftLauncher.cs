@@ -85,7 +85,8 @@ public sealed class MinecraftLauncher
         }
     }
 
-    public string OpenLauncher()
+    /// <summary>Launch the Java edition via the official launcher (with the boosted profile).</summary>
+    public string LaunchJava()
     {
         string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         string pfx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
@@ -103,21 +104,38 @@ public sealed class MinecraftLauncher
                 try
                 {
                     Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true });
-                    return "✔ Launching Minecraft… pick the '⚡ MEGA Ultra Boosted' profile.";
+                    return "✔ Launching Java Minecraft… pick the '⚡ MEGA Ultra Boosted' profile.";
                 }
                 catch (Exception e) { return $"✖ {e.Message}"; }
             }
         }
 
-        // Microsoft Store install or custom path — try the registered URI handler.
+        // NOTE: deliberately no "minecraft://" fallback here — that URI is registered
+        // by the Bedrock UWP app on most systems, so it would open Bedrock instead.
+        return "✖ Java launcher not found. Open the Minecraft Launcher yourself and pick '⚡ MEGA Ultra Boosted'.";
+    }
+
+    /// <summary>Launch the Bedrock edition (UWP). System tweaks only — Bedrock has no Java mods.</summary>
+    public string LaunchBedrock()
+    {
+        // Standard way to start a UWP app by its Application User Model ID.
         try
         {
-            Process.Start(new ProcessStartInfo("minecraft://") { UseShellExecute = true });
-            return "✔ Asked Windows to open Minecraft… pick the boosted profile.";
+            Process.Start(new ProcessStartInfo("explorer.exe",
+                @"shell:AppsFolder\Microsoft.MinecraftUWP_8wekyb3d8bbwe!App") { UseShellExecute = true });
+            return "✔ Launching Minecraft Bedrock…";
         }
         catch
         {
-            return "✖ Launcher not found. Open it yourself and select '⚡ MEGA Ultra Boosted'.";
+            try
+            {
+                Process.Start(new ProcessStartInfo("minecraft://") { UseShellExecute = true });
+                return "✔ Asked Windows to open Minecraft Bedrock…";
+            }
+            catch (Exception e)
+            {
+                return $"✖ Bedrock not found ({e.Message}). Install it from the Microsoft Store.";
+            }
         }
     }
 }

@@ -23,14 +23,15 @@ public sealed class SystemOptimizer
     private const string HighPerformance = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c";
     private const string Balanced = "381b4222-f694-41f0-9685-ff5bb260df2e";
 
-    private static readonly string[] McProcessNames = { "javaw", "java", "Minecraft", "MinecraftLauncher" };
+    // "Minecraft.Windows" is the Bedrock (UWP) process; the rest are Java.
+    private static readonly string[] McProcessNames = { "javaw", "java", "Minecraft", "Minecraft.Windows", "MinecraftLauncher" };
 
     /// <summary>Critical processes the suspend feature must never touch.</summary>
     private static readonly HashSet<string> SuspendDenyList = new(StringComparer.OrdinalIgnoreCase)
     {
         "system", "idle", "explorer", "csrss", "wininit", "winlogon", "services",
         "lsass", "smss", "svchost", "dwm", "fontdrvhost", "MegaUltraBooster",
-        "javaw", "java", "Minecraft"
+        "javaw", "java", "Minecraft", "Minecraft.Windows"
     };
 
     public (long totalMb, long availMb) GetMemory()

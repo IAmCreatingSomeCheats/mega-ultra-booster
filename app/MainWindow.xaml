@@ -29,13 +29,17 @@
                     <TextBlock Text="Minecraft performance booster · mod + app" Foreground="{StaticResource Subtle}" FontSize="12"/>
                 </StackPanel>
             </StackPanel>
-            <Border x:Name="LinkPill" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Background="{StaticResource Panel2}" CornerRadius="14" Padding="14,7">
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse x:Name="LinkDot" Width="10" Height="10" Fill="{StaticResource Subtle}" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="LinkText" Text="Waiting for mod…" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Border>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <ComboBox x:Name="EditionCombo" Width="160" Padding="8,5" Margin="0,0,12,0"
+                          VerticalContentAlignment="Center"/>
+                <Border x:Name="LinkPill" VerticalAlignment="Center"
+                        Background="{StaticResource Panel2}" CornerRadius="14" Padding="14,7">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="LinkDot" Width="10" Height="10" Fill="{StaticResource Subtle}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="LinkText" Text="Waiting for mod…" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </Grid>
 
         <!-- ── Body ── -->

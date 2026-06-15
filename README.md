@@ -54,6 +54,11 @@ mega_ultra pc_booster/
   optimized profile into your existing official launcher** and launches it, so
   your normal login keeps working. Advanced users can also run a raw `java`
   command.
+* **Bedrock is app-side only.** The app has a **Java / Bedrock** edition selector:
+  it can launch Bedrock and apply Windows-side optimizations (power plan, priority,
+  RAM trim, Game Mode) to it. But **the mod is Java-only** — Bedrock has no Java
+  mods, so there is no in-game overlay, live link, boost profile, or auto
+  server-switch on Bedrock. JVM/RAM tuning is also Java-only (Bedrock isn't a JVM).
 
 [Sodium]: https://modrinth.com/mod/sodium
 [Lithium]: https://modrinth.com/mod/lithium

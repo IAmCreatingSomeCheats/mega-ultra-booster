@@ -58,6 +58,11 @@ public partial class MainWindow : Window
         IntensityCombo.ItemsSource = new[] { "Quality (light)", "Balanced", "Potato (max FPS)" };
         IntensityCombo.SelectedIndex = 2; // Potato — same as the old one-shot BOOST
 
+        // Edition selector (Java vs Bedrock)
+        EditionCombo.ItemsSource = new[] { "Java Edition", "Bedrock Edition" };
+        EditionCombo.SelectedIndex = 0;
+        EditionCombo.SelectionChanged += (_, _) => ApplyEdition();
+
         // Servers
         _store.Load();
         foreach (var s in _store.Servers) _servers.Add(s);
@@ -75,6 +80,7 @@ public partial class MainWindow : Window
         try { _link.Start(); }
         catch (Exception ex) { Log("✖ Live link failed to start: " + ex.Message); }
 
+        ApplyEdition(); // sets Java/Bedrock control state + launcher status
         Log("Ready. Launch Minecraft with the TurboBoost mod — it connects automatically.");
     }
 
@@ -101,6 +107,29 @@ public partial class MainWindow : Window
     {
         RamLabel.Text = $"{HeapMb / 1024.0:0.0} GB";
         FlagsText.Text = _jvm.BuildAikarFlags(HeapMb);
+    }
+
+    private bool IsBedrock => EditionCombo.SelectedIndex == 1;
+
+    /// <summary>Enable only what applies to the chosen edition.</summary>
+    private void ApplyEdition()
+    {
+        bool bedrock = IsBedrock;
+
+        // Java-only: JVM heap, Aikar flags, in-game profile/overlay, mod-driven switch.
+        RamSlider.IsEnabled = !bedrock;
+        IntensityCombo.IsEnabled = !bedrock;
+        DynamicFpsToggle.IsEnabled = !bedrock;
+        ApplyProfileButton.IsEnabled = !bedrock;
+        FlagsText.Opacity = bedrock ? 0.4 : 1.0;
+        QuietestButton.IsEnabled = !bedrock; // switching needs the Java mod
+
+        LaunchButton.Content = bedrock ? "▶  Launch Bedrock" : "▶  Launch Minecraft";
+        LauncherStatus.Text = bedrock
+            ? "Bedrock: system tweaks + launch only. JVM/RAM, the in-game overlay, the live link and auto server-switch are Java-only — Bedrock has no Java mods."
+            : (_launcher.MinecraftInstalled
+                ? $".minecraft found: {_launcher.MinecraftDir}"
+                : "⚠ .minecraft not found — run the official launcher once first.");
     }
 
     private void RefreshCategories()
@@ -190,6 +219,12 @@ public partial class MainWindow : Window
         if (TrimToggle.IsChecked == true) Log(_system.FreeStandbyMemory());
         if (GameModeToggle.IsChecked == true) Log(_system.SetGameMode(true));
 
+        if (IsBedrock)
+        {
+            Log("• Bedrock: system optimized. (In-game boost profile & overlay are Java-only.)");
+            return;
+        }
+
         var profile = IntensityCombo.SelectedIndex switch
         {
             0 => BoostProfile.Quality(),
@@ -214,7 +249,8 @@ public partial class MainWindow : Window
         Log(_launcher.PatchOptimizedProfile(HeapMb, _jvm.BuildAikarFlags(HeapMb)));
     }
 
-    private void LaunchButton_Click(object sender, RoutedEventArgs e) => Log(_launcher.OpenLauncher());
+    private void LaunchButton_Click(object sender, RoutedEventArgs e)
+        => Log(IsBedrock ? _launcher.LaunchBedrock() : _launcher.LaunchJava());
 
     private async void PingAllButton_Click(object sender, RoutedEventArgs e)
     {
