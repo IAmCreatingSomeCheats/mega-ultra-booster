@@ -22,15 +22,38 @@ public sealed class BoostProfile
     public double EntityDistance { get; set; } = 0.5;
     public bool DynamicFps { get; set; } = true;
 
-    public static BoostProfile Aggressive() => new();
+    public static BoostProfile Aggressive() => Potato();
+
+    /// <summary>Max FPS — lowest settings (matches the mod's Potato preset).</summary>
+    public static BoostProfile Potato() => new()
+    {
+        RenderDistance = 4,
+        Particles = "minimal",
+        EntityDistance = 0.5,
+        GraphicsFast = true,
+        CloudsOff = true,
+        EntityShadows = false,
+    };
 
     public static BoostProfile Balanced() => new()
     {
-        RenderDistance = 12,
+        RenderDistance = 8,
         Particles = "decreased",
         EntityDistance = 0.75,
         GraphicsFast = true,
         CloudsOff = true,
+        EntityShadows = false,
+    };
+
+    /// <summary>Lightest boost — keeps it pretty (fancy graphics, clouds, shadows).</summary>
+    public static BoostProfile Quality() => new()
+    {
+        RenderDistance = 12,
+        Particles = "all",
+        EntityDistance = 1.0,
+        GraphicsFast = false,
+        CloudsOff = false,
+        EntityShadows = true,
     };
 
     public JsonObject ToJson() => new()

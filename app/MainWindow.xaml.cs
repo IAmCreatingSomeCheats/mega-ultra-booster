@@ -8,6 +8,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using MegaUltraBooster.Models;
 using MegaUltraBooster.Services;
 
@@ -23,6 +24,12 @@ public partial class MainWindow : Window
 
     private readonly ObservableCollection<ServerEntry> _servers = new();
     private long _totalRamMb;
+
+    // Live FPS history for the sparkline + session stats.
+    private const int FpsHistoryMax = 60;
+    private readonly List<int> _fpsHistory = new();
+    private int _fpsMin, _fpsMax, _fpsCount;
+    private long _fpsSum;
 
     public MainWindow()
     {
@@ -46,6 +53,10 @@ public partial class MainWindow : Window
         RamSlider.Value = Math.Clamp(recommended, (int)RamSlider.Minimum, (int)RamSlider.Maximum);
         RamSlider.ValueChanged += (_, _) => UpdateRamUi();
         UpdateRamUi();
+
+        // Boost intensity selector (matches the mod's profiles)
+        IntensityCombo.ItemsSource = new[] { "Quality (light)", "Balanced", "Potato (max FPS)" };
+        IntensityCombo.SelectedIndex = 2; // Potato — same as the old one-shot BOOST
 
         // Servers
         _store.Load();
@@ -123,7 +134,51 @@ public partial class MainWindow : Window
         RamBar.Value = t.MemMaxMb > 0 ? Math.Clamp(t.MemUsedMb * 100.0 / t.MemMaxMb, 0, 100) : 0;
         ServerText.Text = $"Server: {t.Server}";
         DimText.Text = $"Dimension: {t.Dimension}";
+        RecordFps(t.Fps);
+        DrawFpsGraph();
         SetLinked(true);
+    }
+
+    private void RecordFps(int fps)
+    {
+        if (fps <= 0) return;
+        _fpsHistory.Add(fps);
+        if (_fpsHistory.Count > FpsHistoryMax) _fpsHistory.RemoveAt(0);
+
+        _fpsSum += fps;
+        _fpsCount++;
+        _fpsMin = _fpsCount == 1 ? fps : Math.Min(_fpsMin, fps);
+        _fpsMax = Math.Max(_fpsMax, fps);
+        FpsMinAvgMax.Text = $"min {_fpsMin}  ·  avg {(int)(_fpsSum / _fpsCount)}  ·  max {_fpsMax}";
+    }
+
+    private void DrawFpsGraph()
+    {
+        FpsGraph.Children.Clear();
+        if (_fpsHistory.Count < 2) return;
+
+        double w = FpsGraph.ActualWidth, h = FpsGraph.ActualHeight;
+        if (w <= 0 || h <= 0) return; // not laid out yet — next sample will draw
+
+        double scaleMax = Math.Max(_fpsMax, 1);
+        double dx = w / (FpsHistoryMax - 1);
+        int start = FpsHistoryMax - _fpsHistory.Count; // right-align the newest sample
+
+        var points = new PointCollection();
+        for (int i = 0; i < _fpsHistory.Count; i++)
+        {
+            double x = (start + i) * dx;
+            double y = h - (_fpsHistory[i] / scaleMax) * (h - 2) - 1;
+            points.Add(new Point(x, y));
+        }
+
+        FpsGraph.Children.Add(new Polyline
+        {
+            Points = points,
+            Stroke = (Brush)FindResource("Accent"),
+            StrokeThickness = 2,
+            StrokeLineJoin = PenLineJoin.Round,
+        });
     }
 
     // ── button handlers ──
@@ -135,12 +190,18 @@ public partial class MainWindow : Window
         if (TrimToggle.IsChecked == true) Log(_system.FreeStandbyMemory());
         if (GameModeToggle.IsChecked == true) Log(_system.SetGameMode(true));
 
-        var profile = BoostProfile.Aggressive();
+        var profile = IntensityCombo.SelectedIndex switch
+        {
+            0 => BoostProfile.Quality(),
+            1 => BoostProfile.Balanced(),
+            _ => BoostProfile.Potato(),
+        };
         profile.DynamicFps = DynamicFpsToggle.IsChecked == true;
+        string intensity = (IntensityCombo.SelectedItem as string) ?? "Potato";
         if (_link.ModConnected)
         {
             _link.ApplyProfile(profile);
-            Log("✔ Sent boost profile to the running game.");
+            Log($"✔ Sent '{intensity}' boost profile to the running game.");
         }
         else
         {

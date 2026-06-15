@@ -67,7 +67,12 @@
                             <CheckBox x:Name="PriorityToggle" Style="{StaticResource Switch}" Content="Set Minecraft to High priority" IsChecked="True" Margin="0,9,0,0"/>
                             <CheckBox x:Name="TrimToggle" Style="{StaticResource Switch}" Content="Free standby RAM (trim working sets)" IsChecked="True" Margin="0,9,0,0"/>
                             <CheckBox x:Name="GameModeToggle" Style="{StaticResource Switch}" Content="Enable Windows Game Mode" IsChecked="True" Margin="0,9,0,0"/>
-                            <CheckBox x:Name="DynamicFpsToggle" Style="{StaticResource Switch}" Content="Dynamic FPS when unfocused (in-game)" IsChecked="True" Margin="0,9,0,14"/>
+                            <CheckBox x:Name="DynamicFpsToggle" Style="{StaticResource Switch}" Content="Dynamic FPS when unfocused (in-game)" IsChecked="True" Margin="0,9,0,12"/>
+
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="Boost intensity" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="IntensityCombo" DockPanel.Dock="Right" Width="180" Padding="8,4"/>
+                            </DockPanel>
 
                             <Button x:Name="BoostButton" Style="{StaticResource BoostButton}" Content="🚀  BOOST NOW" Click="BoostButton_Click"/>
                         </StackPanel>
@@ -147,6 +152,13 @@
                                 <TextBlock x:Name="DimText" Text="Dimension: —" Foreground="{StaticResource Subtle}" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Grid>
+
+                        <TextBlock Text="FPS (recent)" Foreground="{StaticResource Subtle}" FontSize="11" Margin="0,14,0,4"/>
+                        <Border Background="{StaticResource Panel2}" CornerRadius="6" Padding="6" Height="66">
+                            <Canvas x:Name="FpsGraph" ClipToBounds="True"/>
+                        </Border>
+                        <TextBlock x:Name="FpsMinAvgMax" Text="min —  ·  avg —  ·  max —"
+                                   Foreground="{StaticResource Subtle}" FontSize="11" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
 
