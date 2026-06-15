@@ -70,14 +70,20 @@ public sealed class MinecraftLauncher
             };
             if (fabricId != null) profile["lastVersionId"] = fabricId;
 
-            profiles["megaultraboosted"] = profile;
+            // The launcher only keeps profiles whose key is a 32-char hex id, so use a
+            // stable one (re-saving updates the same entry) and drop the old bad key.
+            const string boostKey = "b0057b0057b0057b0057b0057b0057b0";
+            profiles.Remove("megaultraboosted");
+            profiles[boostKey] = profile;
+
             File.WriteAllText(ProfilesPath,
                 root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 
             string ver = fabricId != null
-                ? $" → version '{fabricId}'"
-                : " (install Fabric for 1.21.11, then re-apply to bind the version)";
-            return $"✔ Optimized profile saved: {heapMb} MB heap{ver}";
+                ? $" → '{fabricId}'"
+                : " (install Fabric for your version, then re-apply)";
+            return $"✔ Saved '⚡ MEGA Ultra Boosted' ({heapMb} MB heap{ver}). " +
+                   "Keep the launcher CLOSED while saving (it overwrites the file when open), then open it.";
         }
         catch (Exception e)
         {
