@@ -7,6 +7,12 @@
 
 package com.megaultra.turboboost.compat;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
+import net.minecraft.client.network.ServerAddress;
+import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.option.KeyBinding;
@@ -17,7 +23,8 @@ import net.minecraft.util.Identifier;
 
 /**
  * Modern compat — Minecraft 1.21.11.
- * KeyBinding.Category objects, getPreset(), ParticlesMode in net.minecraft.particle.
+ * KeyBinding.Category objects, getPreset(), ParticlesMode in net.minecraft.particle,
+ * CookieStorage-era connect (6-arg).
  */
 public final class CompatImpl implements TbCompat {
 
@@ -51,5 +58,13 @@ public final class CompatImpl implements TbCompat {
             case DECREASED -> "decreased";
             case MINIMAL -> "minimal";
         };
+    }
+
+    @Override
+    public void connectToServer(MinecraftClient client, String name, String address) {
+        if (client.world != null) client.disconnectWithProgressScreen();
+        ServerAddress addr = ServerAddress.parse(address);
+        ServerInfo info = new ServerInfo(name, address, ServerInfo.ServerType.OTHER);
+        ConnectScreen.connect(new MultiplayerScreen(new TitleScreen()), client, addr, info, false, null);
     }
 }

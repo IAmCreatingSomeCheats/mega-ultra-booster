@@ -8,22 +8,23 @@
 package com.megaultra.turboboost.compat;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.option.ParticlesMode;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.particle.ParticlesMode;
 
 /**
- * Legacy compat — Minecraft 1.21.4 / 1.21.8.
- * String keybind categories, getGraphicsMode(), ParticlesMode in
- * net.minecraft.particle, CookieStorage-era connect (6-arg).
+ * Compat for Minecraft 1.20.1 (Java 17).
+ * Like v1_20, but two extra 1.20.1-isms: ConnectScreen lives in
+ * net.minecraft.client.gui.screen (not .multiplayer), and ServerInfo takes a
+ * boolean "local" flag instead of a ServerType.
  */
 public final class CompatImpl implements TbCompat {
 
@@ -58,9 +59,9 @@ public final class CompatImpl implements TbCompat {
 
     @Override
     public void connectToServer(MinecraftClient client, String name, String address) {
-        if (client.world != null) client.disconnect(new TitleScreen(), false);
+        if (client.world != null) client.disconnect(new TitleScreen());
         ServerAddress addr = ServerAddress.parse(address);
-        ServerInfo info = new ServerInfo(name, address, ServerInfo.ServerType.OTHER);
-        ConnectScreen.connect(new MultiplayerScreen(new TitleScreen()), client, addr, info, false, null);
+        ServerInfo info = new ServerInfo(name, address, false); // 1.20.1: boolean 'local'
+        ConnectScreen.connect(new MultiplayerScreen(new TitleScreen()), client, addr, info, false);
     }
 }

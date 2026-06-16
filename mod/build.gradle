@@ -7,10 +7,14 @@ plugins {
 // Pick a target with  -Pmcver=1.21.8  (defaults to 1.21.11). build-all.ps1 loops
 // every entry. Each version mixes in its legacy/modern compat source overlay.
 def MC_MATRIX = [
-    '1.21.1' : [yarn: '1.21.1+build.3',  loader: '0.16.10', fapi: '0.116.12+1.21.1', overlay: 'v1_21_1'],
-    '1.21.4' : [yarn: '1.21.4+build.8',  loader: '0.16.10', fapi: '0.119.4+1.21.4',  overlay: 'legacy'],
-    '1.21.8' : [yarn: '1.21.8+build.1',  loader: '0.16.10', fapi: '0.136.1+1.21.8',  overlay: 'legacy'],
-    '1.21.11': [yarn: '1.21.11+build.6', loader: '0.19.3',  fapi: '0.141.4+1.21.11', overlay: 'modern'],
+    '1.20.1' : [yarn: '1.20.1+build.10', loader: '0.16.10', fapi: '0.92.9+1.20.1',   overlay: 'v1_20_1', java: 17],
+    '1.20.4' : [yarn: '1.20.4+build.3',  loader: '0.16.10', fapi: '0.97.3+1.20.4',   overlay: 'v1_20',   java: 17],
+    '1.20.6' : [yarn: '1.20.6+build.3',  loader: '0.16.10', fapi: '0.100.8+1.20.6',  overlay: 'v1_21_1', java: 21],
+    '1.21'   : [yarn: '1.21+build.9',    loader: '0.16.10', fapi: '0.102.0+1.21',    overlay: 'v1_21_1', java: 21],
+    '1.21.1' : [yarn: '1.21.1+build.3',  loader: '0.16.10', fapi: '0.116.12+1.21.1', overlay: 'v1_21_1', java: 21],
+    '1.21.4' : [yarn: '1.21.4+build.8',  loader: '0.16.10', fapi: '0.119.4+1.21.4',  overlay: 'legacy',  java: 21],
+    '1.21.8' : [yarn: '1.21.8+build.1',  loader: '0.16.10', fapi: '0.136.1+1.21.8',  overlay: 'legacy',  java: 21],
+    '1.21.11': [yarn: '1.21.11+build.6', loader: '0.19.3',  fapi: '0.141.4+1.21.11', overlay: 'modern',  java: 21],
 ]
 def mcver = (project.findProperty('mcver') ?: '1.21.11').toString()
 def mc = MC_MATRIX[mcver]
@@ -54,16 +58,18 @@ processResources {
     }
 }
 
-// Compile against Java 21 (the Minecraft 1.21.x runtime), even on a newer host JDK.
+// Compile against the MC version's Java level (17 for 1.20.1–1.20.4, else 21),
+// even on a newer host JDK — Gradle's toolchain auto-download fetches the JDK.
+int javaVer = (mc.java ?: 21) as int
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(javaVer)
     }
     withSourcesJar()
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.release = 21
+    options.release = javaVer
     options.encoding = 'UTF-8'
 }
 

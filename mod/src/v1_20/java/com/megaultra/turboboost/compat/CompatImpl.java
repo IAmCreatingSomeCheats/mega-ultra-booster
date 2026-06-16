@@ -16,14 +16,15 @@ import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.option.ParticlesMode;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.particle.ParticlesMode;
 
 /**
- * Legacy compat — Minecraft 1.21.4 / 1.21.8.
+ * Compat for Minecraft 1.20.4 (Java 17).
  * String keybind categories, getGraphicsMode(), ParticlesMode in
- * net.minecraft.particle, CookieStorage-era connect (6-arg).
+ * net.minecraft.client.option, and the pre-CookieStorage connect: disconnect is
+ * 1-arg and ConnectScreen.connect is 5-arg (no CookieStorage).
  */
 public final class CompatImpl implements TbCompat {
 
@@ -58,9 +59,9 @@ public final class CompatImpl implements TbCompat {
 
     @Override
     public void connectToServer(MinecraftClient client, String name, String address) {
-        if (client.world != null) client.disconnect(new TitleScreen(), false);
+        if (client.world != null) client.disconnect(new TitleScreen());
         ServerAddress addr = ServerAddress.parse(address);
         ServerInfo info = new ServerInfo(name, address, ServerInfo.ServerType.OTHER);
-        ConnectScreen.connect(new MultiplayerScreen(new TitleScreen()), client, addr, info, false, null);
+        ConnectScreen.connect(new MultiplayerScreen(new TitleScreen()), client, addr, info, false);
     }
 }

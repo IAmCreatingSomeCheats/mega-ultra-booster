@@ -8,12 +8,8 @@
 package com.megaultra.turboboost.server;
 
 import com.megaultra.turboboost.TurboBoostClient;
+import com.megaultra.turboboost.compat.Compat;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
-import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
-import net.minecraft.client.network.ServerAddress;
-import net.minecraft.client.network.ServerInfo;
 
 /** Disconnects from the current server (if any) and connects to a new one. */
 public final class ServerSwitcher {
@@ -22,27 +18,11 @@ public final class ServerSwitcher {
 
     public static void connect(String name, String address) {
         MinecraftClient client = MinecraftClient.getInstance();
-        client.execute(() -> doConnect(client, name, address));
-    }
-
-    private static void doConnect(MinecraftClient client, String name, String address) {
-        TurboBoostClient.actionBar("§b⚡ Switching to §f" + name + " §7(" + address + ")");
-
-        // Leave the current world/server first (no-op at the main menu).
-        // disconnect(Screen, boolean) is the one overload common to 1.21.1–1.21.11.
-        if (client.world != null) {
-            client.disconnect(new TitleScreen(), false);
-        }
-
-        ServerAddress addr = ServerAddress.parse(address);
-        ServerInfo info = new ServerInfo(name, address, ServerInfo.ServerType.OTHER);
-
-        // VERSION-SENSITIVE: ConnectScreen.connect's signature changes between MC
-        // versions. For 1.21.11 it is:
-        //   connect(Screen, MinecraftClient, ServerAddress, ServerInfo, boolean, CookieStorage)
-        // If a build error points here, check the current signature on Linkie.
-        ConnectScreen.connect(
-                new MultiplayerScreen(new TitleScreen()),
-                client, addr, info, false, null);
+        client.execute(() -> {
+            TurboBoostClient.actionBar("§b⚡ Switching to §f" + name + " §7(" + address + ")");
+            // The disconnect + ConnectScreen.connect signatures vary by MC version,
+            // so the whole leave-and-connect lives in the per-version compat overlay.
+            Compat.get().connectToServer(client, name, address);
+        });
     }
 }

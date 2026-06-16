@@ -7,6 +7,12 @@
 
 package com.megaultra.turboboost.compat;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
+import net.minecraft.client.network.ServerAddress;
+import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.option.KeyBinding;
@@ -15,10 +21,9 @@ import net.minecraft.client.option.SimpleOption;
 import net.minecraft.client.util.InputUtil;
 
 /**
- * Compat for Minecraft 1.21.1.
- * Like legacy (String keybind categories, getGraphicsMode()), but ParticlesMode
- * still lives in net.minecraft.client.option here (it moved to
- * net.minecraft.particle in 1.21.4).
+ * Compat for Minecraft 1.20.6 / 1.21 / 1.21.1.
+ * String keybind categories, getGraphicsMode(), ParticlesMode in
+ * net.minecraft.client.option, and CookieStorage-era connect (6-arg).
  */
 public final class CompatImpl implements TbCompat {
 
@@ -49,5 +54,13 @@ public final class CompatImpl implements TbCompat {
             case DECREASED -> "decreased";
             case MINIMAL -> "minimal";
         };
+    }
+
+    @Override
+    public void connectToServer(MinecraftClient client, String name, String address) {
+        if (client.world != null) client.disconnect(new TitleScreen(), false);
+        ServerAddress addr = ServerAddress.parse(address);
+        ServerInfo info = new ServerInfo(name, address, ServerInfo.ServerType.OTHER);
+        ConnectScreen.connect(new MultiplayerScreen(new TitleScreen()), client, addr, info, false, null);
     }
 }

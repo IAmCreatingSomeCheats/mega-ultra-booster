@@ -9,7 +9,7 @@
 #>
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
-$versions = '1.21.1', '1.21.4', '1.21.8', '1.21.11'
+$versions = '1.20.1', '1.20.4', '1.20.6', '1.21', '1.21.1', '1.21.4', '1.21.8', '1.21.11'
 $dist = Join-Path $root 'dist'
 
 Remove-Item $dist -Recurse -Force -ErrorAction SilentlyContinue

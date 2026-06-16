@@ -7,6 +7,7 @@
 
 package com.megaultra.turboboost.compat;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.option.KeyBinding;
@@ -36,4 +37,11 @@ public interface TbCompat {
 
     /** Read the current particle option as {@code "all"} | {@code "decreased"} | {@code "minimal"}. */
     String readParticles(GameOptions options);
+
+    /**
+     * Leave the current world (if any) and connect to {@code address}. The
+     * disconnect arity and {@code ConnectScreen.connect} signature both vary by MC
+     * version (CookieStorage arrived in 1.20.5), so the whole thing lives here.
+     */
+    void connectToServer(MinecraftClient client, String name, String address);
 }
