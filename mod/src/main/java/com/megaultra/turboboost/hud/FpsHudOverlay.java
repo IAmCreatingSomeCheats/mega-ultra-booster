@@ -18,8 +18,16 @@ import net.minecraft.client.network.ServerInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Compact FPS / frame-time / RAM / link-status overlay drawn top-left. */
+/**
+ * Compact FPS / frame-time / RAM / link-status overlay drawn top-left.
+ * The text + reflection are rebuilt ~5x/sec (not every frame) into a reused list,
+ * so a 200+ fps game doesn't churn the GC building HUD strings each frame.
+ */
 public final class FpsHudOverlay {
+
+    private static final List<String> LINES = new ArrayList<>(8);
+    private static final long REBUILD_INTERVAL_MS = 200L;
+    private static long lastBuildMs = 0L;
 
     private FpsHudOverlay() {}
 
@@ -37,41 +45,49 @@ public final class FpsHudOverlay {
         if (client.options.hudHidden) return;        // respect F1
         if (client.textRenderer == null) return;
 
-        List<String> lines = new ArrayList<>();
-        int fps = client.getCurrentFps();
-        lines.add("§b⚡ TurboBoost");
-        lines.add(fpsColor(fps) + fps + " FPS §7(" + frameTime(fps) + " ms)");
-
-        if (cfg.hudShowStats) {
-            var stats = TurboBoostClient.getFpsStats();
-            if (stats.hasData()) {
-                lines.add("§7avg §f" + stats.avg() + " §7· 1% low §f" + stats.onePercentLow());
-            }
-        }
-
-        if (cfg.hudShowMemory) {
-            Runtime rt = Runtime.getRuntime();
-            long usedMb = (rt.totalMemory() - rt.freeMemory()) / 1_048_576L;
-            long maxMb = rt.maxMemory() / 1_048_576L;
-            int pct = maxMb > 0 ? (int) (usedMb * 100 / maxMb) : 0;
-            lines.add(memColor(pct) + "RAM " + usedMb + "/" + maxMb + " MB §7(" + pct + "%)");
-        }
-        if (cfg.hudShowServer) {
-            lines.add("§7" + serverLabel(client));
-        }
-        if (cfg.hudShowLinkStatus) {
-            boolean linked = TurboBoostClient.getLink() != null && TurboBoostClient.getLink().isConnected();
-            lines.add(linked ? "§aLINK ✔" : "§8LINK ✖");
-        }
-        if (cfg.hudShowShaders && IrisShaders.isAvailable()) {
-            lines.add("§7Shaders " + (IrisShaders.shadersEnabled() ? "§aON" : "§8OFF"));
+        long now = System.currentTimeMillis();
+        if (now - lastBuildMs >= REBUILD_INTERVAL_MS || LINES.isEmpty()) {
+            rebuild(client, cfg);
+            lastBuildMs = now;
         }
 
         int x = cfg.hudX;
         int y = cfg.hudY;
         int lineH = client.textRenderer.fontHeight + 2;
-        for (int i = 0; i < lines.size(); i++) {
-            ctx.drawTextWithShadow(client.textRenderer, lines.get(i), x, y + i * lineH, 0xFFFFFF);
+        for (int i = 0; i < LINES.size(); i++) {
+            ctx.drawTextWithShadow(client.textRenderer, LINES.get(i), x, y + i * lineH, 0xFFFFFF);
+        }
+    }
+
+    /** Rebuild the cached HUD lines. Runs a few times a second, not per frame. */
+    private static void rebuild(MinecraftClient client, BoostConfig cfg) {
+        LINES.clear();
+        int fps = client.getCurrentFps();
+        LINES.add("§b⚡ TurboBoost");
+        LINES.add(fpsColor(fps) + fps + " FPS §7(" + frameTime(fps) + " ms)");
+
+        if (cfg.hudShowStats) {
+            var stats = TurboBoostClient.getFpsStats();
+            if (stats.hasData()) {
+                LINES.add("§7avg §f" + stats.avg() + " §7· 1% low §f" + stats.onePercentLow());
+            }
+        }
+        if (cfg.hudShowMemory) {
+            Runtime rt = Runtime.getRuntime();
+            long usedMb = (rt.totalMemory() - rt.freeMemory()) / 1_048_576L;
+            long maxMb = rt.maxMemory() / 1_048_576L;
+            int pct = maxMb > 0 ? (int) (usedMb * 100 / maxMb) : 0;
+            LINES.add(memColor(pct) + "RAM " + usedMb + "/" + maxMb + " MB §7(" + pct + "%)");
+        }
+        if (cfg.hudShowServer) {
+            LINES.add("§7" + serverLabel(client));
+        }
+        if (cfg.hudShowLinkStatus) {
+            boolean linked = TurboBoostClient.getLink() != null && TurboBoostClient.getLink().isConnected();
+            LINES.add(linked ? "§aLINK ✔" : "§8LINK ✖");
+        }
+        if (cfg.hudShowShaders && IrisShaders.isAvailable()) {
+            LINES.add("§7Shaders " + (IrisShaders.shadersEnabled() ? "§aON" : "§8OFF"));
         }
     }
 

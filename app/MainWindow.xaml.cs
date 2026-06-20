@@ -98,6 +98,13 @@ public partial class MainWindow : Window
     private void Log(string msg)
     {
         LogBox.AppendText($"[{DateTime.Now:HH:mm:ss}] {msg}\n");
+        // Cap the log so a long session doesn't grow the TextBox unbounded.
+        if (LogBox.LineCount > 700)
+        {
+            var lines = LogBox.Text.Split('\n');
+            LogBox.Text = string.Join('\n', lines[^400..]);
+            LogBox.CaretIndex = LogBox.Text.Length;
+        }
         LogBox.ScrollToEnd();
     }
 
