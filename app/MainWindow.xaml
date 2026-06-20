@@ -101,6 +101,7 @@
                                 <Button Grid.Column="0" x:Name="ApplyProfileButton" Content="💾  Save profile" Click="ApplyProfileButton_Click"/>
                                 <Button Grid.Column="2" x:Name="LaunchButton" Content="▶  Launch Minecraft" Click="LaunchButton_Click"/>
                             </Grid>
+                            <Button x:Name="OpenModsButton" Content="📂  Open mods folder" Click="OpenModsButton_Click" Margin="0,8,0,0"/>
                             <TextBlock x:Name="LauncherStatus" Text="" Foreground="{StaticResource Subtle}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
@@ -131,11 +132,29 @@
             <Grid Grid.Column="1" Margin="9,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Live telemetry -->
+                <!-- System (Windows) CPU + RAM -->
                 <Border Grid.Row="0" Style="{StaticResource Card}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="THIS PC (Windows)" FontWeight="Bold" Foreground="{StaticResource Accent}" Margin="0,0,0,10"/>
+                        <DockPanel Margin="0,0,0,5">
+                            <TextBlock x:Name="SysCpuText" Text="CPU —" DockPanel.Dock="Right" Foreground="{StaticResource Subtle}"/>
+                            <TextBlock Text="CPU"/>
+                        </DockPanel>
+                        <ProgressBar x:Name="SysCpuBar" Height="8" Minimum="0" Maximum="100" Background="{StaticResource Panel2}" Foreground="{StaticResource Accent}" BorderThickness="0" Margin="0,0,0,10"/>
+                        <DockPanel Margin="0,0,0,5">
+                            <TextBlock x:Name="SysRamText" Text="RAM —" DockPanel.Dock="Right" Foreground="{StaticResource Subtle}"/>
+                            <TextBlock Text="RAM"/>
+                        </DockPanel>
+                        <ProgressBar x:Name="SysRamBar" Height="8" Minimum="0" Maximum="100" Background="{StaticResource Panel2}" Foreground="{StaticResource Good}" BorderThickness="0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Live telemetry -->
+                <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12">
                     <StackPanel>
                         <TextBlock Text="LIVE (from the game)" FontWeight="Bold" Foreground="{StaticResource Good}" Margin="0,0,0,10"/>
                         <Grid>
@@ -167,7 +186,7 @@
                 </Border>
 
                 <!-- Smart Server Switcher -->
-                <Border Grid.Row="1" Style="{StaticResource Card}">
+                <Border Grid.Row="2" Style="{StaticResource Card}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

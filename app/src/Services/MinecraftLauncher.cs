@@ -145,6 +145,22 @@ public sealed class MinecraftLauncher
         }
     }
 
+    /// <summary>Open <c>.minecraft/mods</c> in Explorer (create it if missing).</summary>
+    public string OpenModsFolder()
+    {
+        try
+        {
+            string mods = Path.Combine(MinecraftDir, "mods");
+            Directory.CreateDirectory(mods);
+            Process.Start(new ProcessStartInfo(mods) { UseShellExecute = true });
+            return $"✔ Opened {mods}";
+        }
+        catch (Exception e)
+        {
+            return $"✖ Could not open mods folder: {e.Message}";
+        }
+    }
+
     /// <summary>Start a Microsoft Store app by its Application User Model ID.</summary>
     private static bool LaunchAumid(string aumid)
     {

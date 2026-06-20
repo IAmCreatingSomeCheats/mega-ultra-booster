@@ -25,6 +25,9 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<ServerEntry> _servers = new();
     private long _totalRamMb;
 
+    private readonly System.Windows.Threading.DispatcherTimer _sysTimer =
+        new() { Interval = TimeSpan.FromSeconds(1) };
+
     // Live FPS history for the sparkline + session stats.
     private const int FpsHistoryMax = 60;
     private readonly List<int> _fpsHistory = new();
@@ -81,11 +84,18 @@ public partial class MainWindow : Window
         catch (Exception ex) { Log("✖ Live link failed to start: " + ex.Message); }
 
         ApplyEdition(); // sets Java/Bedrock control state + launcher status
+
+        // Live system CPU + RAM gauges
+        _system.CpuPercent(); // prime the CPU baseline
+        _sysTimer.Tick += (_, _) => UpdateSystemGauges();
+        _sysTimer.Start();
+
         Log("Ready. Launch Minecraft with the TurboBoost mod — it connects automatically.");
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _sysTimer.Stop();
         _store.Servers.Clear();
         _store.Servers.AddRange(_servers);
         _store.Save();
@@ -258,6 +268,18 @@ public partial class MainWindow : Window
 
     private void LaunchButton_Click(object sender, RoutedEventArgs e)
         => Log(IsBedrock ? _launcher.LaunchBedrock() : _launcher.LaunchJava());
+
+    private void OpenModsButton_Click(object sender, RoutedEventArgs e) => Log(_launcher.OpenModsFolder());
+
+    private void UpdateSystemGauges()
+    {
+        double cpu = _system.CpuPercent();
+        int ram = _system.RamUsedPercent();
+        SysCpuBar.Value = cpu;
+        SysCpuText.Text = $"CPU {cpu:0}%";
+        SysRamBar.Value = ram;
+        SysRamText.Text = $"RAM {ram}%";
+    }
 
     private async void PingAllButton_Click(object sender, RoutedEventArgs e)
     {

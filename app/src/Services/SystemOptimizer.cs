@@ -42,6 +42,33 @@ public sealed class SystemOptimizer
         return (0, 0);
     }
 
+    /// <summary>Whole-system RAM usage 0–100 (Windows' own "memory load").</summary>
+    public int RamUsedPercent()
+    {
+        var s = new NativeMethods.MEMORYSTATUSEX { dwLength = (uint)Marshal.SizeOf<NativeMethods.MEMORYSTATUSEX>() };
+        return NativeMethods.GlobalMemoryStatusEx(ref s) ? (int)s.dwMemoryLoad : 0;
+    }
+
+    private long _prevIdle, _prevKernel, _prevUser;
+    private bool _cpuPrimed;
+
+    /// <summary>Whole-system CPU usage 0–100 since the previous call. Call ~1×/sec
+    /// (first call primes the baseline and returns 0).</summary>
+    public double CpuPercent()
+    {
+        if (!NativeMethods.GetSystemTimes(out long idle, out long kernel, out long user)) return 0;
+        if (!_cpuPrimed)
+        {
+            _prevIdle = idle; _prevKernel = kernel; _prevUser = user; _cpuPrimed = true;
+            return 0;
+        }
+        long idleD = idle - _prevIdle;
+        long totalD = (kernel - _prevKernel) + (user - _prevUser); // kernel already includes idle
+        _prevIdle = idle; _prevKernel = kernel; _prevUser = user;
+        if (totalD <= 0) return 0;
+        return Math.Clamp((1.0 - (double)idleD / totalD) * 100.0, 0, 100);
+    }
+
     public string SetHighPerformancePowerPlan() => SetPowerPlan(HighPerformance, "High-Performance power plan");
 
     public string RestoreBalancedPowerPlan() => SetPowerPlan(Balanced, "Balanced power plan");
