@@ -67,7 +67,6 @@ yourself even on a newer JDK. Per-version jars land in `build/libs/` (and
 |-----|--------|
 | **F6** | Toggle the FPS/RAM overlay |
 | **F7** | Cycle boost profile (Off → Quality → Balanced → Potato) |
-| **F8** | Clean RAM (free heap, reports MB freed) |
 | **F9** | Benchmark FPS (5s baseline → boost → 5s, shows the gain) |
 | **F10** | Toggle Iris shaders on/off (instant FPS panic button) |
 | **K**  | Quick-switch to the quietest server in your category |

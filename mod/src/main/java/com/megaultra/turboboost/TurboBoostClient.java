@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TurboBoostClient implements ClientModInitializer {
     public static final String MOD_ID = "turboboost";
-    public static final String MOD_VERSION = "1.3.0";
+    public static final String MOD_VERSION = "1.3.1";
     public static final Logger LOGGER = LoggerFactory.getLogger("TurboBoost");
 
     private static BoostConfig config;
@@ -47,7 +47,6 @@ public class TurboBoostClient implements ClientModInitializer {
     private KeyBinding toggleHudKey;
     private KeyBinding boostCycleKey;
     private KeyBinding quickSwitchKey;
-    private KeyBinding ramCleanKey;
     private KeyBinding benchmarkKey;
     private KeyBinding shaderToggleKey;
     private final DynamicFps dynamicFps = new DynamicFps();
@@ -107,8 +106,6 @@ public class TurboBoostClient implements ClientModInitializer {
                 Compat.get().createKeyBind("key.turboboost.boost_cycle", GLFW.GLFW_KEY_F7));
         quickSwitchKey = KeyBindingHelper.registerKeyBinding(
                 Compat.get().createKeyBind("key.turboboost.quick_switch", GLFW.GLFW_KEY_K));
-        ramCleanKey = KeyBindingHelper.registerKeyBinding(
-                Compat.get().createKeyBind("key.turboboost.ram_clean", GLFW.GLFW_KEY_F8));
         benchmarkKey = KeyBindingHelper.registerKeyBinding(
                 Compat.get().createKeyBind("key.turboboost.benchmark", GLFW.GLFW_KEY_F9));
         shaderToggleKey = KeyBindingHelper.registerKeyBinding(
@@ -126,9 +123,6 @@ public class TurboBoostClient implements ClientModInitializer {
         }
         while (quickSwitchKey.wasPressed()) {
             quickSwitch();
-        }
-        while (ramCleanKey.wasPressed()) {
-            ramClean();
         }
         while (benchmarkKey.wasPressed()) {
             startBenchmark(client);
@@ -228,16 +222,6 @@ public class TurboBoostClient implements ClientModInitializer {
         IrisShaders.setShaders(!wasOn);
         shadersDisabledByBoost = false; // manual override wins
         actionBar(wasOn ? "§7⚡ Shaders §fOFF §7(max FPS)" : "§a⚡ Shaders §fON");
-    }
-
-    /** F8: ask the JVM to reclaim heap and report how much was freed. */
-    private void ramClean() {
-        Runtime rt = Runtime.getRuntime();
-        long before = rt.totalMemory() - rt.freeMemory();
-        System.gc();
-        long after = rt.totalMemory() - rt.freeMemory();
-        long freedMb = Math.max(0, before - after) / 1_048_576L;
-        actionBar("§a⚡ RAM cleaned — freed §f" + freedMb + " MB");
     }
 
     /** F9: measure avg FPS for 5s, apply the boost, measure 5s more, show the gain. */

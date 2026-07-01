@@ -24,7 +24,6 @@ runs alongside them and handles the settings automation, overlay, and tools.
   below a configurable threshold for a few seconds.
 - **FPS benchmark** — measures average FPS for 5s, applies the boost, measures 5s
   more, and reports the before/after numbers.
-- **RAM clean** — requests a JVM garbage collection and reports the heap freed.
 - **Server-list switcher** — keep your servers grouped by category; one key
   reconnects you to the one with the fewest players / lowest ping in a category
   you choose. (It cannot detect player skill — it sorts by live player count and
@@ -42,7 +41,6 @@ runs alongside them and handles the settings automation, overlay, and tools.
 |-----|--------|
 | **F6** | Toggle the FPS/RAM overlay |
 | **F7** | Cycle boost profile (Off → Quality → Balanced → Potato) |
-| **F8** | Request a RAM (heap) cleanup |
 | **F9** | Run the before/after FPS benchmark |
 | **F10** | Toggle Iris shaders (if Iris is installed) |
 | **K**  | Switch to the lowest-population server in your category |
