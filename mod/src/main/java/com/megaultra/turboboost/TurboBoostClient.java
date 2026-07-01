@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TurboBoostClient implements ClientModInitializer {
     public static final String MOD_ID = "turboboost";
-    public static final String MOD_VERSION = "1.3.1";
+    public static final String MOD_VERSION = "1.3.2";
     public static final Logger LOGGER = LoggerFactory.getLogger("TurboBoost");
 
     private static BoostConfig config;
@@ -52,6 +52,7 @@ public class TurboBoostClient implements ClientModInitializer {
     private final DynamicFps dynamicFps = new DynamicFps();
     private int telemetryTimer = 0;
     private int lowFpsTicks = 0;       // sustained-low counter for Auto-Boost
+    private int worldTicks = 0;        // ticks since the world+player loaded (grace period)
     private boolean autoBoosted = false;
     private int boostLevel = 0;        // 0 Off · 1 Quality · 2 Balanced · 3 Potato
     private boolean shadersDisabledByBoost = false;
@@ -143,10 +144,11 @@ public class TurboBoostClient implements ClientModInitializer {
         }
     }
 
-    /** Feed the FPS window and trigger Auto-Boost once if FPS stays low in-world. */
+    /** Feed the FPS window and trigger Auto-Boost once if FPS stays low while playing. */
     private void updateStatsAndAutoBoost(MinecraftClient client) {
-        if (client.world == null) {
-            // Out of a world: reset so Auto-Boost can fire again next session.
+        if (client.world == null || client.player == null) {
+            // Out of a world (or still loading): reset so Auto-Boost starts fresh.
+            worldTicks = 0;
             lowFpsTicks = 0;
             autoBoosted = false;
             return;
@@ -155,14 +157,22 @@ public class TurboBoostClient implements ClientModInitializer {
         int fps = client.getCurrentFps();
         fpsStats.record(fps);
 
+        // Grace period: skip the FPS dip during world load/gen (~10 s) so Auto-Boost
+        // doesn't false-fire on the loading spike and slash render distance on join.
+        if (worldTicks < 200) {
+            worldTicks++;
+            return;
+        }
+
         if (!config.autoBoostEnabled || autoBoosted) return;
 
         if (fps > 0 && fps < config.autoBoostFpsThreshold) {
-            if (++lowFpsTicks >= 60) { // ~3 s sustained below the threshold
-                PerformanceManager.applyProfile(BoostProfile.aggressive());
+            if (++lowFpsTicks >= 100) { // ~5 s of genuinely low FPS while playing
+                PerformanceManager.applyProfile(BoostProfile.balanced());
+                boostLevel = 2;
                 autoBoosted = true;
                 lowFpsTicks = 0;
-                actionBar("§e⚡ Auto-Boost: FPS was low — applied boost profile");
+                actionBar("§e⚡ Auto-Boost: low FPS — applied Balanced (press F7 to change/undo)");
             }
         } else {
             lowFpsTicks = 0;
